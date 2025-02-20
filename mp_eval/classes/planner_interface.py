@@ -3,6 +3,7 @@ import subprocess
 import time
 import logging
 from pathlib import Path
+from threading import Thread
 
 from mp_eval.classes.workload import WorkloadConfig
 
@@ -31,17 +32,11 @@ class PlannerInterface:
     def setup(self):
         self._create_config_files()
         self._setup_docker_container()
-        # create config file at location
-        # subprocess:
-        # check if docker container is running
-        # or launch docker container
-        # connect to docker container
-        # check if build install directory exists
-        # if not terminate workload. prompt user to build docker container
-
 
     def _create_config_files(self):
+        # create config file at location
         pass
+
 
     def _setup_docker_container(self):
         try:
@@ -92,7 +87,7 @@ class PlannerInterface:
             self.logger.error(f"Docker-compose error: {str(e)}")
             raise
 
-    def execute(self):
+    def _execute_container_command(self):
         try:
             self.logger.debug("Launching planner node")
             ws_dir = os.environ['WS_DIR']
@@ -125,7 +120,6 @@ class PlannerInterface:
                 for line in pipe:
                     self._log_subprocess_output(line.strip(), prefix)
             
-            from threading import Thread
             Thread(target=log_output, args=(self.process.stdout, "PLANNER STDOUT"), daemon=True).start()
             Thread(target=log_output, args=(self.process.stderr, "PLANNER STDERR"), daemon=True).start()
             
@@ -136,20 +130,29 @@ class PlannerInterface:
             self.logger.error(f"Container execution error: {str(e)}")
 
 
-    def teardown(self):
+    def _teardown_docker_container(self):
         try:
-            self.logger.debug("Stopping ROS2 launch file")
+            self.logger.debug("Stopping planner process")
             
             if self.process and self.process.poll() is None:
-                self.process.terminate()
+                # First try sending SIGINT for graceful shutdown
+                self.process.send_signal(2)  # SIGINT
                 try:
-                    self.process.wait(timeout=5)  # Wait up to 5 seconds for clean shutdown
+                    self.process.wait(timeout=10)  # Increased timeout for graceful shutdown
                 except subprocess.TimeoutExpired:
-                    self.logger.warning("Planner process did not terminate gracefully, forcing kill")
-                    self.process.kill()
-                    self.process.wait()
+                    self.logger.warning("Graceful shutdown failed, attempting SIGTERM")
+                    self.process.terminate()
+                    try:
+                        self.process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        self.logger.warning("SIGTERM failed, forcing kill with SIGKILL")
+                        self.process.kill()
+                        self.process.wait()
                 
             self.logger.debug("Planner process terminated")
+
+            # Add small delay to allow ROS2 to clean up
+            time.sleep(1)
             
             # Stop the docker container
             ws_dir = os.environ['WS_DIR']
@@ -164,3 +167,11 @@ class PlannerInterface:
             
         except Exception as e:
             self.logger.error(f"Error during teardown: {str(e)}")
+
+    def teardown(self):
+        self._teardown_docker_container()
+
+    def execute(self):
+        self._execute_container_command()
+
+
