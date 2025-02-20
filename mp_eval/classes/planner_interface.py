@@ -154,24 +154,21 @@ class PlannerInterface:
             self.logger.debug("Stopping planner process")
             
             if self.process and self.process.poll() is None:
-                # First try sending SIGINT for graceful shutdown
-                self.process.send_signal(2)  # SIGINT
-                try:
-                    self.process.wait(timeout=10)  # Increased timeout for graceful shutdown
-                except subprocess.TimeoutExpired:
-                    self.logger.warning("Graceful shutdown failed, attempting SIGTERM")
-                    self.process.terminate()
-                    try:
-                        self.process.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        self.logger.warning("SIGTERM failed, forcing kill with SIGKILL")
-                        self.process.kill()
-                        self.process.wait()
+                # Send SIGINT to all ROS processes in the container
+                ws_dir = os.environ['WS_DIR']
+                kill_cmd = f"docker exec {self.container_name} pkill -SIGINT -f ros2"
+                subprocess.run(kill_cmd, shell=True, timeout=2)
+                
+                # Short wait for ROS nodes to shutdown
+                time.sleep(0.5)
+                
+                # If process still running, force kill
+                if self.process.poll() is None:
+                    self.logger.warning("ROS shutdown incomplete, forcing kill")
+                    self.process.kill()
+                    self.process.wait(timeout=2)
                 
             self.logger.debug("Planner process terminated")
-
-            # Add small delay to allow ROS2 to clean up
-            time.sleep(1)
             
             # Stop the docker container
             ws_dir = os.environ['WS_DIR']
