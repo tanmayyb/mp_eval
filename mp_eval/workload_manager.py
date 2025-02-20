@@ -1,33 +1,37 @@
 from mp_eval.classes.workload import WorkloadConfig
 from mp_eval.classes.planner_interface import PlannerInterface
-
+from mp_eval.classes.percept_interface import PerceptInterface
 
 class Workload:
     def __init__(self, config_path: str, logger):
         self.config = WorkloadConfig.from_yaml(config_path)
         self.logger = logger
         self.planner_interface = PlannerInterface(self.config, self.logger.get_child('planner_interface'))
+        self.percept_interface = PerceptInterface(self.config, self.logger.get_child('percept_interface'))
 
     def setup(self):
-        self.planner_interface.setup()
-        # setup perception
+        # self.planner_interface.setup()
+        self.percept_interface.setup()
 
     def execute(self):
-        # execute planner
-        self.planner_interface.execute()
-        # execute perception
+        # self.planner_interface.execute()
+        self.percept_interface.execute()
 
     def teardown(self):
-        # teardown planner
-        # teardown perception
-        # time.sleep(2)
-        self.planner_interface.teardown()
+        # self.planner_interface.teardown()
+        self.percept_interface.teardown()
+
+    # def bypass(self):
+    #     self.percept_interface.setup()
+    #     self.percept_interface.execute()
+    #     self.percept_interface.teardown()
         
     def run(self):
         self.setup()
         self.execute()
         # self.teardown()
         # Construct the docker exec command
+
 
 
 class WorkloadManager:
