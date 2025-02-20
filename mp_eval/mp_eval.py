@@ -5,17 +5,15 @@ from rclpy.node import Node
 import os
 import yaml
 
-from mp_eval.classes.workload import WorkloadManager
+from mp_eval.classes.workloads import WorkloadManager
 
 class MPEval(Node):
     def __init__(self, node_name='mp_eval'):
         super().__init__(node_name)
-
+        self.workload_manager = None
         # Declare parameters
         self.setup()
         self.run()
-
-
 
     def setup(self):
         self.declare_parameter('ws_dir', '.')
@@ -27,7 +25,6 @@ class MPEval(Node):
         self.results_dir = self.get_parameter('results_dir').value
         self.workload = self.get_parameter('workload').value
 
-
         # Set workspace directory in environment
         os.environ['WS_DIR'] = self.ws_dir
         os.environ['RESULTS_DIR'] = self.results_dir
@@ -37,11 +34,14 @@ class MPEval(Node):
             os.makedirs(self.results_dir)
             self.get_logger().info(f"Created results directory: {self.results_dir}")
 
-
     def run(self):
         self.workload_manager = WorkloadManager(self.get_logger().get_child('workload_manager'))
         self.workload_manager.add_workload(self.workload)
         self.workload_manager.run()
+
+    def cleanup(self):
+        if self.workload_manager:
+            self.workload_manager.teardown()
 
 def main(args=None):
     rclpy.init(args=args)
@@ -49,7 +49,8 @@ def main(args=None):
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        pass
+        node.get_logger().info("Shutting down gracefully...")
+        node.cleanup()
     finally:
         node.destroy_node()
         rclpy.shutdown()
