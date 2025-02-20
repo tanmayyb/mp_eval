@@ -15,6 +15,7 @@ class Poses:
     end_orientation: List[float]
 @dataclass
 class AgentConfig:
+    detect_shell_radius: float
     mass: float
     radius: float
     max_velocity: float
@@ -26,8 +27,11 @@ class AgentConfig:
     forces: List[str]
 @dataclass
 class PlannerConfig:
-    planner_type: str
+    experiment_type: str
     loop_frequency: int
+    service_timeout: int
+    delta_t: float
+    max_prediction_steps: int
     poses: Poses # to be stored in start_goal.yaml
     agents: List[AgentConfig] # to be stored in scenario_config.yaml
 @dataclass
@@ -52,8 +56,11 @@ class WorkloadConfig:
                 agents.append(agent)
                 
             planner_config = PlannerConfig(
-                planner_type=planner_data['planner_type'],
+                experiment_type=planner_data['experiment_type'],
                 loop_frequency=planner_data['loop_frequency'],
+                service_timeout=planner_data['service_timeout'],
+                delta_t=planner_data['delta_t'],
+                max_prediction_steps=planner_data['max_prediction_steps'],
                 poses=poses,
                 agents=agents
             )
