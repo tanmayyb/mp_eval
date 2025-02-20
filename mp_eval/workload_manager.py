@@ -10,29 +10,21 @@ class Workload:
         self.percept_interface = PerceptInterface(self.config, self.logger.get_child('percept_interface'))
 
     def setup(self):
-        # self.planner_interface.setup()
+        self.planner_interface.setup()
         self.percept_interface.setup()
 
     def execute(self):
-        # self.planner_interface.execute()
+        self.planner_interface.execute()
         self.percept_interface.execute()
 
     def teardown(self):
-        # self.planner_interface.teardown()
+        self.planner_interface.teardown()
         self.percept_interface.teardown()
 
-    # def bypass(self):
-    #     self.percept_interface.setup()
-    #     self.percept_interface.execute()
-    #     self.percept_interface.teardown()
-        
     def run(self):
         self.setup()
         self.execute()
-        # self.teardown()
-        # Construct the docker exec command
-
-
+        self.teardown()
 
 class WorkloadManager:
     def __init__(self, logger):

@@ -113,18 +113,32 @@ class PerceptInterface:
             self.active_nodes[node_name] = updated_node
             self.launch_description.add_action(updated_node)
 
-    def _generate_launch_description(self):
-        """Generate launch description based on configuration."""
-        # Add scene loader node
-        # scene_loader = self._add_node(
-        #     package_name="percept",
-        #     node_executable="scene_loader.py",
-        #     node_name="scene_loader",
-        #     parameters={
-        #         'obstacles_config_path': self.config.scene_path
-        #     }
-        # )
-        
+    def _setup_scene_nodes(self):
+        scene_type = self.config.scene_config.scene_type
+        if scene_type == "static":
+            scene_path = self.config.scene_config.scene_params.static_scene_path
+            self.scene_node = self._add_node(
+                package_name="percept",
+                node_executable="scene_loader.py",
+                node_name="scene_loader",
+                parameters={
+                    'obstacles_config_path': str(self.pkg_dir / scene_path)
+                }
+            )
+        elif scene_type == "generated":
+            scene_path = 'assets/benchmark_scenes/auto_generated_scene.yaml'
+            self.scene_node = self._add_node(
+                package_name="percept",
+                node_executable="scene_loader.py",
+                node_name="scene_loader",
+                parameters={
+                    'obstacles_config_path': str(self.pkg_dir / scene_path)
+                }
+            )
+        else:
+            raise ValueError(f"Scene type {self.config.scene_config.scene_type} not supported")
+    
+    def _setup_fields_computer_node(self):
         # Add fields computer node
         fields_computer = self._add_node(
             package_name="percept",
@@ -147,16 +161,25 @@ class PerceptInterface:
                 ('/get_random_heuristic_circforce', f'/{self.config.namespace}/get_random_heuristic_force'),
             ]
         )
-        
-        # Add RViz node
-        rviz_node = self._add_node(
-            package_name="rviz2",
-            node_executable="rviz2",
-            node_name="perception_rviz",
-            parameters=None,
-            arguments=['-d', str(self.pkg_dir / self.config.rviz_config.rviz_config_path)],
-            namespace="perception",
-        )
+
+    def _setup_rviz_node(self):
+        if self.config.rviz_config.show_rviz:
+            # Add RViz node
+            rviz_config_path = self.config.rviz_config.rviz_config_path
+            rviz_node = self._add_node(
+                package_name="rviz2",
+                node_executable="rviz2",
+                node_name="perception_rviz",
+                parameters=None,
+                arguments=['-d', str(self.pkg_dir / rviz_config_path)],
+                namespace="perception",
+            )
+
+    def _generate_launch_description(self):
+        """Generate launch description based on configuration."""
+        self._setup_scene_nodes()
+        self._setup_fields_computer_node()
+        self._setup_rviz_node()
 
     def setup(self):
         self._generate_launch_description()
