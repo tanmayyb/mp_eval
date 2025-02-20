@@ -3,50 +3,35 @@ metadata:
   name: "sample_navigation_workload"
   description: "A sample workload configuration for multi-agent navigation"
 
-poses:
-  start_pos: [0.0, 0.0, 0.0]
-  end_pos: [10.0, 10.0, 0.0]
-  start_orientation: [0.0, 0.0, 0.0]
-  end_orientation: [0.0, 0.0, 1.57]
-
 planner_config:
-  planner_type: "potential_field"
-  loop_frequency: 50
+  experiment_type: "oriented_pointmass"
+  loop_frequency: 1000
+  service_timeout: 5000
+  delta_t: 0.01
+  max_prediction_steps: 10
   poses:
-    start_pos: [0.0, 0.0, 0.0]
-    end_pos: [10.0, 10.0, 0.0]
-    start_orientation: [0.0, 0.0, 0.0]
-    end_orientation: [0.0, 0.0, 1.57]
+    start_pos:  [0.0, 1.0, 1.0]
+    goal_pos: [1.0, 2.0, 1.0]
+    start_orientation: [1.0, 0.0, 0.0, 0.0]
+    goal_orientation: [1.0, 0.0, 0.0, 0.0]
   agents:
-    - mass: 1.0
-      radius: 0.3
-      max_velocity: 2.0
-      approach_distance: 0.5
+    - detect_shell_radius: 5.0
+      mass: 1.0
+      radius: 0.1
+      max_velocity: 0.1
+      approach_distance: 0.25
       k_attractor_force: 1.0
-      k_damping: 0.8
-      k_repel_force: 1.5
-      k_circular_force: 1.2
-      forces: ["attractor", "repulsive", "circular"]
-    - mass: 1.2
-      radius: 0.35
-      max_velocity: 1.8
-      approach_distance: 0.6
+      k_damping: 4.0
+      k_repel_force: 2.0
+      k_circular_force: 0.5
+      forces: ["attractor_force", "velocity_heuristic_force"]
+    - detect_shell_radius: 5.0
+      mass: 1.0
+      radius: 0.1
+      max_velocity: 0.1
+      approach_distance: 0.25
       k_attractor_force: 1.0
-      k_damping: 0.7
-      k_repel_force: 1.6
-      k_circular_force: 1.1
-      forces: ["attractor", "repulsive"]
-
-config:
-  simulation_time: 60.0
-  time_step: 0.02
-  environment:
-    size: [20.0, 20.0]
-    obstacles:
-      - position: [5.0, 5.0]
-        radius: 1.0
-      - position: [8.0, 3.0]
-        radius: 0.8
-  visualization:
-    enable: true
-    update_frequency: 10 
+      k_damping: 4.0
+      k_repel_force: 2.0
+      k_circular_force: 0.5
+      forces: ["attractor_force", "obstacle_heuristic_force"]
