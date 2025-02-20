@@ -8,13 +8,19 @@
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
+  <depend>rclcpp</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
+  <depend>rviz2</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>message_filters</depend> 
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <depend>percept_interfaces</depend>
+  <depend>percept</depend>
 
   <export>
     <build_type>ament_python</build_type>
