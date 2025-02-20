@@ -7,6 +7,8 @@ class Metadata:
     name: str
     datetime: str
     description: str
+
+
 @dataclass
 class Poses:
     start_pos: List[float]
@@ -25,6 +27,20 @@ class AgentConfig:
     k_repel_force: float
     k_circular_force: float
     forces: List[str]
+    @classmethod
+    def from_config(cls, config: Dict):
+        return cls(
+            detect_shell_radius=config['detect_shell_radius'] if 'detect_shell_radius' in config else 0.0,
+            mass=config['mass'] if 'mass' in config else 0.0,
+            radius=config['radius'] if 'radius' in config else 0.0,
+            max_velocity=config['max_velocity'] if 'max_velocity' in config else 0.0,
+            approach_distance=config['approach_distance'] if 'approach_distance' in config else 0.0,
+            k_attractor_force=config['k_attractor_force'] if 'k_attractor_force' in config else 0.0,
+            k_damping=config['k_damping'] if 'k_damping' in config else 0.0,
+            k_repel_force=config['k_repel_force'] if 'k_repel_force' in config else 0.0,
+            k_circular_force=config['k_circular_force'] if 'k_circular_force' in config else 0.0,
+            forces=config['forces'] if 'forces' in config else ['attractor_force'],
+        )
 @dataclass
 class PlannerConfig:
     experiment_type: str
@@ -34,6 +50,7 @@ class PlannerConfig:
     max_prediction_steps: int
     poses: Poses # to be stored in start_goal.yaml
     agents: List[AgentConfig] # to be stored in scenario_config.yaml
+
 
 @dataclass
 class SceneParams:
@@ -79,19 +96,30 @@ class FieldsConfig:
             show_processing_delay=config['show_processing_delay'] if 'show_processing_delay' in config else False
         )
 @dataclass
+class RvizConfig:
+    show_rviz: bool
+    rviz_config_path: str
+    @classmethod
+    def from_config(cls, config: Dict):
+        return cls(
+            show_rviz=config['show_rviz'] if 'show_rviz' in config else False,
+            rviz_config_path=config['rviz_config_path'] if 'rviz_config_path' in config else None
+        )
+@dataclass
 class PerceptConfig:
     namespace: str
     mode: str
     scene_config: SceneConfig
     fields_config: FieldsConfig
-
+    rviz_config: RvizConfig
     @classmethod
     def from_config(cls, config: Dict, planner_config: PlannerConfig):
         return cls(
             namespace=planner_config.experiment_type,
             mode=config['mode'],
             scene_config=SceneConfig.from_config(config['scene_config']),
-            fields_config=FieldsConfig.from_config(config['fields_config'])
+            fields_config=FieldsConfig.from_config(config['fields_config']),
+            rviz_config=RvizConfig.from_config(config['rviz_config'])
         )
 
 @dataclass
@@ -112,7 +140,7 @@ class WorkloadConfig:
             
             agents = []
             for agent_data in planner_data['agents']:
-                agent = AgentConfig(**agent_data)
+                agent = AgentConfig.from_config(agent_data)
                 agents.append(agent)
                 
             planner_config = PlannerConfig(

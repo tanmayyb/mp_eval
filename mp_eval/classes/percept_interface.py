@@ -8,6 +8,9 @@ from launch.launch_service import LaunchService
 from launch.actions import EmitEvent
 from launch.events import Shutdown
 from mp_eval.classes.workload import WorkloadConfig, PerceptConfig
+from ament_index_python.packages import get_package_share_directory
+from pathlib import Path
+
 
 class PerceptInterface:
     def __init__(self, config: WorkloadConfig, logger):
@@ -16,7 +19,8 @@ class PerceptInterface:
         self.logger = logger
         self.active_nodes: Dict[str, Node] = {}
         self.launch_description = LaunchDescription()
-        
+        self.pkg_dir = Path(get_package_share_directory('percept'))
+    
     def _add_node(
         self,
         package_name: str,
@@ -24,7 +28,8 @@ class PerceptInterface:
         node_name: str,
         parameters: Optional[Dict[str, Any]] = None,
         remappings: Optional[List[tuple]] = None,
-        namespace: str = ""
+        namespace: str = "",
+        arguments: Optional[List[str]] = None
     ) -> Node:
         """
         Create a new node configuration.
@@ -36,13 +41,15 @@ class PerceptInterface:
             parameters: Dictionary of parameters to pass to the node
             remappings: List of topic remappings as (from, to) tuples
             namespace: Namespace for the node
+            arguments: Command line arguments to pass to the node
         """
         node = Node(
             package=package_name,
             executable=node_executable,
             name=node_name,
+            arguments=arguments or [],
             parameters=[parameters] if parameters else None,
-            remappings=remappings if remappings else [],
+            remappings=remappings or [],
             namespace=namespace
         )
         self.active_nodes[node_name] = node
@@ -141,15 +148,15 @@ class PerceptInterface:
             ]
         )
         
-        # # Add RViz node
-        # rviz_node = self._add_node(
-        #     package_name="rviz2",
-        #     node_executable="rviz2",
-        #     node_name="perception_rviz",
-        #     parameters=None,
-        #     namespace="perception",
-        #     # Note: You'll need to add support for arguments in _add_node if needed
-        # )
+        # Add RViz node
+        rviz_node = self._add_node(
+            package_name="rviz2",
+            node_executable="rviz2",
+            node_name="perception_rviz",
+            parameters=None,
+            arguments=['-d', str(self.pkg_dir / self.config.rviz_config.rviz_config_path)],
+            namespace="perception",
+        )
 
     def setup(self):
         self._generate_launch_description()
