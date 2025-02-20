@@ -10,9 +10,9 @@ class Metadata:
 @dataclass
 class Poses:
     start_pos: List[float]
-    end_pos: List[float]
+    goal_pos: List[float]
     start_orientation: List[float]
-    end_orientation: List[float]
+    goal_orientation: List[float]
 @dataclass
 class AgentConfig:
     detect_shell_radius: float

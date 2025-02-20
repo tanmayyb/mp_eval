@@ -112,7 +112,7 @@ class PlannerInterface:
             ws_dir = os.environ['WS_DIR']
 
             # Launch the ROS2 node in the background
-            launch_cmd = ". install/setup.bash && exec {self.launch_command}"
+            launch_cmd = f". install/setup.bash && exec {self.launch_command}"
             self.process = subprocess.Popen(
                 ['docker', 'exec', self.container_name, 'bash', '-c', launch_cmd],
                 cwd=ws_dir,
@@ -295,8 +295,8 @@ class PlannerYaml:
     def get_scenario_config(self):
         scenario_config = {
             "start_pos": self.config.poses.start_pos,
-            "end_pos": self.config.poses.end_pos,
+            "goal_pos": self.config.poses.goal_pos,
             "start_orientation": self.config.poses.start_orientation,
-            "end_orientation": self.config.poses.end_orientation
+            "goal_orientation": self.config.poses.goal_orientation
         }
         return scenario_config
