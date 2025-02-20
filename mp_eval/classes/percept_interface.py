@@ -153,10 +153,9 @@ class PerceptInterface:
 
     def setup(self):
         self._generate_launch_description()
-        self._launch_nodes()
 
     def execute(self):
-        pass
+        self._launch_nodes()
 
     def teardown(self):
-        pass
+        self._kill_all_nodes()

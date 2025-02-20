@@ -67,6 +67,17 @@ class FieldsConfig:
     detect_shell_radius: float
     publish_force_vector: bool
     show_processing_delay: bool
+    @classmethod
+    def from_config(cls, config: Dict):
+        return cls(
+            k_circular_force=config['k_circular_force'],
+            agent_radius=config['agent_radius'],
+            mass_radius=config['mass_radius'],
+            max_allowable_force=config['max_allowable_force'],
+            detect_shell_radius=config['detect_shell_radius'] if 'detect_shell_radius' in config else 0.0,
+            publish_force_vector=config['publish_force_vector'] if 'publish_force_vector' in config else False,
+            show_processing_delay=config['show_processing_delay'] if 'show_processing_delay' in config else False
+        )
 @dataclass
 class PerceptConfig:
     namespace: str
@@ -80,7 +91,7 @@ class PerceptConfig:
             namespace=planner_config.experiment_type,
             mode=config['mode'],
             scene_config=SceneConfig.from_config(config['scene_config']),
-            fields_config=FieldsConfig(**config['fields_config'])
+            fields_config=FieldsConfig.from_config(config['fields_config'])
         )
 
 @dataclass
