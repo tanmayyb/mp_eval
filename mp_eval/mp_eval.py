@@ -5,7 +5,7 @@ from rclpy.node import Node
 import os
 import yaml
 
-from mp_eval.classes.workloads import WorkloadManager
+from mp_eval.workload_manager import WorkloadManager
 
 class MPEval(Node):
     def __init__(self, node_name='mp_eval'):
