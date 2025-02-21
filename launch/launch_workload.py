@@ -30,5 +30,15 @@ def generate_launch_description():
                 'workload': LaunchConfiguration('workload')
             }],
             output='screen'
+        ),
+        Node(
+            package='mp_eval',
+            executable='metrics_collector',
+            name='metrics_collector',
+            parameters=[{
+                'ws_dir': LaunchConfiguration('ws_dir'),
+                'workload': LaunchConfiguration('workload')
+            }],
+            output='screen'
         )
     ])

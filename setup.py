@@ -24,6 +24,7 @@ setup(
     entry_points={
         'console_scripts': [
             'mp_eval = mp_eval.mp_eval:main',
+            'metrics_collector = mp_eval.metrics_collector:main',
         ],
     },
 )
