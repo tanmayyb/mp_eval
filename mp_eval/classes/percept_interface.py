@@ -11,8 +11,7 @@ from mp_eval.classes.workload import WorkloadConfig, PerceptConfig, SceneConfig
 from ament_index_python.packages import get_package_share_directory
 from pathlib import Path
 from mp_eval.classes.scene_generator import SceneGenerator
-import threading
-# import asyncio
+import asyncio
 import logging
 
 class PerceptInterface:
@@ -61,20 +60,6 @@ class PerceptInterface:
         )
         self.active_nodes[node_name] = node
         return node
-
-    def _launch_nodes(self):
-        """Launch all configured nodes."""
-        for node in self.active_nodes.values():
-            self.launch_description.add_action(node)
-
-        # self._launch_nodes()
-        # Create and configure the LaunchService instance.
-        self.launch_service = LaunchService()
-        self.launch_service.include_launch_description(self.launch_description)
-        # Start the launch service asynchronously.
-        self.logger.debug("Launching Percept LaunchService...")
-        self.future = self.launch_service.run_async()
-        return self.future
 
     def _setup_scene_nodes(self):
         scene_type = self.config.scene_config.scene_type
@@ -156,7 +141,25 @@ class PerceptInterface:
         self._setup_fields_computer_node()
         self._setup_rviz_node()
 
-    def _shutdown_launch_service(self):
+    def _launch_nodes(self):
+        """Launch all configured nodes."""
+        for node in self.active_nodes.values():
+            self.launch_description.add_action(node)
+
+        # self._launch_nodes()
+        # Create and configure the LaunchService instance.
+        self.launch_service = LaunchService()
+        self.launch_service.include_launch_description(self.launch_description)
+        # Start the launch service asynchronously.
+        self.logger.debug("Launching Percept LaunchService...")
+
+        
+        async def async_launch(launch_service):
+            await launch_service.run_async()
+        
+        asyncio.run(async_launch(self.launch_service))
+        
+    def _shutdown_nodes(self):
         if self.launch_service is not None:
             self.logger.debug("Shutting down Percept LaunchService...")
             self.launch_service.shutdown()
@@ -173,4 +176,4 @@ class PerceptInterface:
         self._launch_nodes()
 
     def teardown(self):
-        self._shutdown_launch_service()
+        self._shutdown_nodes()
