@@ -7,10 +7,10 @@ from launch_ros.actions import Node
 from launch.launch_service import LaunchService
 from launch.actions import EmitEvent
 from launch.events import Shutdown
-from mp_eval.classes.workload import WorkloadConfig, PerceptConfig
+from mp_eval.classes.workload import WorkloadConfig, PerceptConfig, SceneConfig
 from ament_index_python.packages import get_package_share_directory
 from pathlib import Path
-
+from mp_eval.classes.scene_generator import SceneGenerator
 
 class PerceptInterface:
     def __init__(self, config: WorkloadConfig, logger):
@@ -181,7 +181,15 @@ class PerceptInterface:
         self._setup_fields_computer_node()
         self._setup_rviz_node()
 
+    def _setup_scene(self):
+        scene_type = self.config.scene_config.scene_type
+        if not scene_type == "generated":
+            return
+        scene_generator = SceneGenerator(self.config.scene_config, self.logger.get_child('scene_generator'), self.pkg_dir)
+        scene_generator.generate_scene()
+
     def setup(self):
+        self._setup_scene()
         self._generate_launch_description()
 
     def execute(self):
