@@ -23,7 +23,7 @@ class AgentConfig:
     k_attractor_force: float
     k_damping: float
     k_repel_force: float
-    # k_circular_force: float
+    k_circular_force: float # deprecated - but here for backwards compatibility
     forces: List[str]
     @classmethod
     def from_config(cls, config: Dict):
