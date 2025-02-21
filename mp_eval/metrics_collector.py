@@ -66,7 +66,7 @@ class MetricsCollectorNode(Node):
         self.log_handle = open(self.log_file, 'w')
         with open(self.workload_config_path, 'r') as config_file:
             workload_yaml = yaml.safe_load(config_file)
-        header = {'workload_config': workload_yaml}
+        header = {'type': 'workload_config', 'workload_config': workload_yaml}
         yaml.dump(header, self.log_handle)
         self.log_handle.write('---\n')
         self.log_handle.flush()
@@ -170,7 +170,7 @@ class MetricsCollectorNode(Node):
         for data in pc2.read_points(msg, field_names=['x', 'y', 'z'], skip_nans=True):
             points.append([float(data[0]), float(data[1]), float(data[2])])
         record = {
-            'type': 'primitives',
+            'type': 'pointcloud',
             'timestamp': float(msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9),
             'num_points': len(points),
             'points': points
