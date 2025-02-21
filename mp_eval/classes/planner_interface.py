@@ -172,14 +172,17 @@ class PlannerInterface:
             
             # Stop the docker container
             ws_dir = os.environ['WS_DIR']
-            result = subprocess.run(
+            result = subprocess.Popen(
                 ['docker-compose', 'down', self.container_name],
                 cwd=ws_dir,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True
             )
-            self._log_subprocess_output(result.stdout, "DOCKER DOWN STDOUT")
-            self._log_subprocess_output(result.stderr, "DOCKER DOWN STDERR")
+            
+            # Log output asynchronously
+            Thread(target=lambda: self._log_subprocess_output(result.stdout.read(), "DOCKER DOWN STDOUT"), daemon=True).start()
+            Thread(target=lambda: self._log_subprocess_output(result.stderr.read(), "DOCKER DOWN STDERR"), daemon=True).start()
             
         except Exception as e:
             self.logger.error(f"Error during teardown: {str(e)}")
