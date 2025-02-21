@@ -7,8 +7,6 @@ class Metadata:
     name: str
     datetime: str
     description: str
-
-
 @dataclass
 class Poses:
     start_pos: List[float]
@@ -50,14 +48,11 @@ class PlannerConfig:
     max_prediction_steps: int
     poses: Poses # to be stored in start_goal.yaml
     agents: List[AgentConfig] # to be stored in scenario_config.yaml
-
-
 @dataclass
 class SceneParams:
     static_scene_path: str
     scene_generation_type: str
     scene_generation_params: Dict[str, float]
-
     @classmethod
     def from_config(cls, config: Dict):
         return cls(
@@ -121,7 +116,6 @@ class PerceptConfig:
             fields_config=FieldsConfig.from_config(config['fields_config']),
             rviz_config=RvizConfig.from_config(config['rviz_config'])
         )
-
 @dataclass
 class WorkloadConfig:
     metadata: Metadata
