@@ -35,8 +35,8 @@ class AgentConfig:
             approach_distance=config['approach_distance'] if 'approach_distance' in config else 0.0,
             k_attractor_force=config['k_attractor_force'] if 'k_attractor_force' in config else 0.0,
             k_damping=config['k_damping'] if 'k_damping' in config else 0.0,
-            k_repel_force=config['k_repel_force'] if 'k_repel_force' in config else 0.0,
-            # k_circular_force=config['k_circular_force'] if 'k_circular_force' in config else 0.0,
+            k_repel_force=config['k_repel_force'] if 'k_repel_force' in config else 0.0, # deprecated - but here for backwards compatibility
+            k_circular_force=config['k_circular_force'] if 'k_circular_force' in config else 0.0, # deprecated - but here for backwards compatibility
             forces=config['forces'] if 'forces' in config else ['attractor_force'],
         )
 @dataclass
