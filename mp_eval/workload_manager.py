@@ -8,20 +8,30 @@ class Workload:
         self.logger = logger
         self.planner_interface = PlannerInterface(self.config, self.logger.get_child('planner_interface'))
         self.percept_interface = PerceptInterface(self.config, self.logger.get_child('percept_interface'))
+        self.disable_planner = False
+        self.disable_percept = False
 
     def setup(self):
-        self.planner_interface.setup()
-        self.percept_interface.setup()
+        if not self.disable_planner:
+            self.planner_interface.setup()
+        if not self.disable_percept:
+            self.percept_interface.setup()
 
-    def execute(self):
-        self.planner_interface.execute()
-        self.percept_interface.execute()
+    def execute(self):    
+        if not self.disable_planner:
+            self.planner_interface.execute()
+        if not self.disable_percept:
+            self.percept_interface.execute()
 
     def teardown(self):
-        self.planner_interface.teardown()
-        self.percept_interface.teardown()
+        if not self.disable_planner:
+            self.planner_interface.teardown()
+        if not self.disable_percept:
+            self.percept_interface.teardown()
 
-    def run(self):
+    def run(self, disable_planner=False, disable_percept=False):
+        self.disable_planner = disable_planner
+        self.disable_percept = disable_percept
         self.setup()
         self.execute()
         self.teardown()
@@ -35,9 +45,9 @@ class WorkloadManager:
         self.logger.info(f"Adding workload from {workload_path}")
         self.workloads.append(Workload(workload_path, self.logger.get_child('workload')))
 
-    def run(self):
+    def run(self, disable_planner=False, disable_percept=False):
         for workload in self.workloads:
-            workload.run()
+            workload.run(disable_planner, disable_percept)
 
     def teardown(self):
         for workload in self.workloads:
