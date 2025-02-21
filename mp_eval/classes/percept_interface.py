@@ -11,15 +11,22 @@ from mp_eval.classes.workload import WorkloadConfig, PerceptConfig, SceneConfig
 from ament_index_python.packages import get_package_share_directory
 from pathlib import Path
 from mp_eval.classes.scene_generator import SceneGenerator
+import threading
+# import asyncio
+import logging
 
 class PerceptInterface:
     def __init__(self, config: WorkloadConfig, logger):
         """Initialize the ROS2 launch interface."""
         self.config = config.percept_config
         self.logger = logger
+        self.logger.set_level(logging.DEBUG)
         self.active_nodes: Dict[str, Node] = {}
         self.launch_description = LaunchDescription()
         self.pkg_dir = Path(get_package_share_directory('percept'))
+        self.launch_service: Optional[LaunchService] = None
+        # self.launch_thread: Optional[threading.Thread] = None
+        self.future: Optional[Any] = None
     
     def _add_node(
         self,
@@ -59,59 +66,15 @@ class PerceptInterface:
         """Launch all configured nodes."""
         for node in self.active_nodes.values():
             self.launch_description.add_action(node)
-        
-        launch_service = LaunchService()
-        launch_service.include_launch_description(self.launch_description)
-        return launch_service.run()
 
-    def _kill_node(self, node_name: str):
-        """
-        Kill a specific node by name.
-        
-        Args:
-            node_name: Name of the node to kill
-        """
-        if node_name in self.active_nodes:
-            shutdown_event = RegisterEventHandler(
-                OnProcessExit(
-                    target_action=self.active_nodes[node_name],
-                    on_exit=[EmitEvent(event=Shutdown())]
-                )
-            )
-            self.launch_description.add_action(shutdown_event)
-            del self.active_nodes[node_name]
-
-    def _kill_all_nodes(self):
-        """Kill all active nodes."""
-        node_names = list(self.active_nodes.keys())
-        for node_name in node_names:
-            self.kill_node(node_name)
-
-    def _update_node_parameters(
-        self,
-        node_name: str,
-        parameters: Dict[str, Any]
-    ):
-        """
-        Update parameters for a specific node.
-        
-        Args:
-            node_name: Name of the node to update
-            parameters: New parameters dictionary
-        """
-        if node_name in self.active_nodes:
-            node = self.active_nodes[node_name]
-            updated_node = Node(
-                package=node.package,
-                executable=node.executable,
-                name=node_name,
-                parameters=[parameters],
-                remappings=node.remappings,
-                namespace=node.namespace
-            )
-            self.kill_node(node_name)
-            self.active_nodes[node_name] = updated_node
-            self.launch_description.add_action(updated_node)
+        # self._launch_nodes()
+        # Create and configure the LaunchService instance.
+        self.launch_service = LaunchService()
+        self.launch_service.include_launch_description(self.launch_description)
+        # Start the launch service asynchronously.
+        self.logger.debug("Launching Percept LaunchService...")
+        self.future = self.launch_service.run_async()
+        return self.future
 
     def _setup_scene_nodes(self):
         scene_type = self.config.scene_config.scene_type
@@ -180,18 +143,27 @@ class PerceptInterface:
                 namespace="perception",
             )
 
-    def _generate_launch_description(self):
-        """Generate launch description based on configuration."""
-        self._setup_scene_nodes()
-        self._setup_fields_computer_node()
-        self._setup_rviz_node()
-
     def _setup_scene(self):
         scene_type = self.config.scene_config.scene_type
         if not scene_type == "generated":
             return
         scene_generator = SceneGenerator(self.config.scene_config, self.logger.get_child('scene_generator'), self.pkg_dir)
         scene_generator.generate_scene()
+
+    def _generate_launch_description(self):
+        """Generate launch description based on configuration."""
+        self._setup_scene_nodes()
+        self._setup_fields_computer_node()
+        self._setup_rviz_node()
+
+    def _shutdown_launch_service(self):
+        if self.launch_service is not None:
+            self.logger.debug("Shutting down Percept LaunchService...")
+            self.launch_service.shutdown()
+            # If a future was returned, wait until it completes.
+            if self.future is not None:
+                self.future.result()
+            self.logger.debug("Percept LaunchService shutdown complete.")
 
     def setup(self):
         self._setup_scene()
@@ -201,4 +173,4 @@ class PerceptInterface:
         self._launch_nodes()
 
     def teardown(self):
-        self._kill_all_nodes()
+        self._shutdown_launch_service()

@@ -34,7 +34,7 @@ class Workload:
         self.disable_percept = disable_percept
         self.setup()
         self.execute()
-        self.teardown()
+        self.logger.info("Workload setup and execution started")
 
 class WorkloadManager:
     def __init__(self, logger):
@@ -51,4 +51,7 @@ class WorkloadManager:
 
     def teardown(self):
         for workload in self.workloads:
-            workload.teardown()
+            try:
+                workload.teardown()
+            except Exception as e:
+                self.logger.error(f"Error tearing down workload: {e}")
