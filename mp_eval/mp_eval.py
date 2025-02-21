@@ -6,6 +6,7 @@ import os
 import yaml
 
 from mp_eval.workload_manager import WorkloadManager
+from mp_eval.metrics_collector import MetricsCollector
 
 class MPEval(Node):
     def __init__(self, node_name='mp_eval'):
@@ -18,7 +19,7 @@ class MPEval(Node):
     def setup(self):
         self.declare_parameter('ws_dir', '.')
         self.declare_parameter('workload', '.')
-        self.declare_parameter('results_dir', './results')
+        self.declare_parameter('results_dir', './plans/results')
 
         # Get parameter values
         self.ws_dir = self.get_parameter('ws_dir').value
@@ -35,7 +36,9 @@ class MPEval(Node):
             self.get_logger().info(f"Created results directory: {self.results_dir}")
 
     def run(self):
-        self.workload_manager = WorkloadManager(self.get_logger().get_child('workload_manager'))
+        self.metrics_collector = MetricsCollector(self)
+        self.workload_manager = WorkloadManager(
+            self.get_logger().get_child('workload_manager'), self.metrics_collector)
         self.workload_manager.add_workload(self.workload)
         self.workload_manager.run()
 
