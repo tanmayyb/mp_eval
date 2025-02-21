@@ -145,7 +145,12 @@ class PerceptInterface:
             node_executable="fields_computer",
             node_name="fields_computer",
             parameters={
-                'k_circular_force': self.config.fields_config.k_circular_force,
+                # 'k_circular_force': self.config.fields_config.k_circular_force, # deprecated
+                'k_cf_velocity': self.config.fields_config.k_cf_velocity,
+                'k_cf_obstacle': self.config.fields_config.k_cf_obstacle,
+                'k_cf_goal': self.config.fields_config.k_cf_goal,
+                'k_cf_goalobstacle': self.config.fields_config.k_cf_goalobstacle,
+                'k_cf_random': self.config.fields_config.k_cf_random,
                 'agent_radius': self.config.fields_config.agent_radius,
                 'mass_radius': self.config.fields_config.mass_radius,
                 'max_allowable_force': self.config.fields_config.max_allowable_force,

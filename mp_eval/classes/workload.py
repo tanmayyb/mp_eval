@@ -23,7 +23,7 @@ class AgentConfig:
     k_attractor_force: float
     k_damping: float
     k_repel_force: float
-    k_circular_force: float
+    # k_circular_force: float
     forces: List[str]
     @classmethod
     def from_config(cls, config: Dict):
@@ -36,7 +36,7 @@ class AgentConfig:
             k_attractor_force=config['k_attractor_force'] if 'k_attractor_force' in config else 0.0,
             k_damping=config['k_damping'] if 'k_damping' in config else 0.0,
             k_repel_force=config['k_repel_force'] if 'k_repel_force' in config else 0.0,
-            k_circular_force=config['k_circular_force'] if 'k_circular_force' in config else 0.0,
+            # k_circular_force=config['k_circular_force'] if 'k_circular_force' in config else 0.0,
             forces=config['forces'] if 'forces' in config else ['attractor_force'],
         )
 @dataclass
@@ -72,7 +72,12 @@ class SceneConfig:
         )
 @dataclass
 class FieldsConfig:
-    k_circular_force: float
+    # k_circular_force: float # deprecated
+    k_cf_velocity: float
+    k_cf_obstacle: float
+    k_cf_goal: float
+    k_cf_goalobstacle: float
+    k_cf_random: float
     agent_radius: float
     mass_radius: float
     max_allowable_force: float
@@ -82,7 +87,12 @@ class FieldsConfig:
     @classmethod
     def from_config(cls, config: Dict):
         return cls(
-            k_circular_force=config['k_circular_force'],
+            # k_circular_force=config['k_circular_force'], # deprecated
+            k_cf_velocity=config['k_cf_velocity'] if 'k_cf_velocity' in config else 0.0,
+            k_cf_obstacle=config['k_cf_obstacle'] if 'k_cf_obstacle' in config else 0.0,
+            k_cf_goal=config['k_cf_goal'] if 'k_cf_goal' in config else 0.0,
+            k_cf_goalobstacle=config['k_cf_goalobstacle'] if 'k_cf_goalobstacle' in config else 0.0,
+            k_cf_random=config['k_cf_random'] if 'k_cf_random' in config else 0.0,
             agent_radius=config['agent_radius'],
             mass_radius=config['mass_radius'],
             max_allowable_force=config['max_allowable_force'],
