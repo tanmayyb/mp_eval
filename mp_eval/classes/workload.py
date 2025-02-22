@@ -179,7 +179,10 @@ class PlannerYaml:
         # modify boilerplate with workload config
         scenario_config = {
             "loop_frequency": self.config.loop_frequency,
-            "publishers": ["trajectory", "target", "pose"],
+            "publishers": [
+                # "trajectory", 
+                "target", "pose", 'best_agent_name']\
+                    +[f"agent_{i}_planning_time" for i in range(1, len(self.config.agents) + 1)], # planning time for each agent
             "subscribers": [],
             "callback_clients": [
                 "obstacle_heuristic_force",
@@ -190,9 +193,11 @@ class PlannerYaml:
             ],
             "callback_servers": [],
             "publisher": {
-                "trajectory": {"type": "gafro_motor_vector", "topic": "trajectory", "callback_queue": "trajectory"},
+                # "trajectory": {"type": "gafro_motor_vector", "topic": "trajectory", "callback_queue": "trajectory"},
                 "target": {"type": "gafro_motor", "topic": "target", "callback_queue": "target"},
-                "pose": {"type": "gafro_motor", "topic": "pose", "callback_queue": "pose"}
+                "pose": {"type": "gafro_motor", "topic": "pose", "callback_queue": "pose"},
+                "best_agent_name": {"type": "ros_string", "topic": "best_agent_name", "callback_queue": "best_agent_name"},
+                **{f"agent_{i}_planning_time": {"type": "ros_float64", "topic": f"agent_{i}/planning_time", "callback_queue": f"cf_planner/agent_{i}/planning_time"} for i in range(1, len(self.config.agents) + 1)}
             },
             "callback_client": {
                 "obstacle_heuristic_force": {
