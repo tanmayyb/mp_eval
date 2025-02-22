@@ -39,6 +39,7 @@ class MetricsCollectorNode(Node):
         # Setup logging infrastructure and callbacks
         self._setup_logging()
         self._setup_callbacks()
+        self.logger.info("Metrics collector node initialized")
 
     def _init_parameters(self):
         """Initialize and process node parameters."""
