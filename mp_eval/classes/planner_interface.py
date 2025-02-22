@@ -6,7 +6,7 @@ from pathlib import Path
 from threading import Thread
 import yaml
 from dataclasses import dataclass
-from mp_eval.classes.workload import WorkloadConfig, PlannerConfig
+from mp_eval.classes.workload import WorkloadConfig, PlannerYaml
         
 
 class PlannerInterface:
@@ -197,106 +197,3 @@ class PlannerInterface:
 
     def teardown(self):
         self._teardown_docker_container()
-
-
-
-
-@dataclass
-class PlannerYaml:
-    config: PlannerConfig
-
-    @classmethod
-    def from_config(cls, config: PlannerConfig):
-        return cls(config)
-
-    def get_planner_setup_config(self):
-        # modify boilerplate with workload config
-        scenario_config = {
-            "loop_frequency": self.config.loop_frequency,
-            "publishers": ["trajectory", "target", "pose"],
-            "subscribers": [],
-            "callback_clients": [
-                "obstacle_heuristic_force",
-                "velocity_heuristic_force",
-                "goal_heuristic_force",
-                "goalobstacle_heuristic_force",
-                "random_heuristic_force"
-            ],
-            "callback_servers": [],
-            "publisher": {
-                "trajectory": {"type": "gafro_motor_vector", "topic": "trajectory", "callback_queue": "trajectory"},
-                "target": {"type": "gafro_motor", "topic": "target", "callback_queue": "target"},
-                "pose": {"type": "gafro_motor", "topic": "pose", "callback_queue": "pose"}
-            },
-            "callback_client": {
-                "obstacle_heuristic_force": {
-                    "type": "obstacle_heuristic_force",
-                    "callback_request": "get_obstacle_heuristic_force",
-                    "callback_response": "obstacle_heuristic_force_response",
-                    "timeout": self.config.service_timeout
-                },
-                "velocity_heuristic_force": {
-                    "type": "velocity_heuristic_force",
-                    "callback_request": "get_velocity_heuristic_force",
-                    "callback_response": "velocity_heuristic_force_response",
-                    "timeout": self.config.service_timeout
-                },
-                "goal_heuristic_force": {
-                    "type": "goal_heuristic_force",
-                    "callback_request": "get_goal_heuristic_force",
-                    "callback_response": "goal_heuristic_force_response",
-                    "timeout": self.config.service_timeout
-                },
-                "goalobstacle_heuristic_force": {
-                    "type": "goalobstacle_heuristic_force",
-                    "callback_request": "get_goalobstacle_heuristic_force",
-                    "callback_response": "goalobstacle_heuristic_force_response",
-                    "timeout": self.config.service_timeout
-                },
-                "random_heuristic_force": {
-                    "type": "random_heuristic_force",
-                    "callback_request": "get_random_heuristic_force",
-                    "callback_response": "random_heuristic_force_response",
-                    "timeout": self.config.service_timeout
-                }
-            },
-            "cf_planner": {
-                "n_agents": len(self.config.agents),
-                "agent_type": "pointmass", # TODO: make this dynamic
-                "delta_t": self.config.delta_t,
-                "max_prediction_steps": self.config.max_prediction_steps,
-                "prediction_freq_multiple": 1,
-                "approach_distance": 0.25,
-                "k_workspace": 1.0,
-                "k_goal_distance": 1.0,
-                "k_path_length": 1.0,
-                "k_safe_distance": 1.0,
-                "workspace_limits": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-            }
-        }
-
-        # Add agent configurations
-        for i, agent in enumerate(self.config.agents, 1):
-            scenario_config["cf_planner"][f"agent_{i}"] = {
-                "detect_shell_radius": agent.detect_shell_radius,
-                "mass": agent.mass,
-                "radius": agent.radius,
-                "max_velocity": agent.max_velocity,
-                "approach_distance": agent.approach_distance,
-                "k_attractor_force": agent.k_attractor_force,
-                "k_damping": agent.k_damping,
-                "k_repel_force": agent.k_repel_force,
-                "k_circular_force": agent.k_circular_force,
-                "forces": agent.forces
-            }
-
-        return scenario_config
-    
-    def get_scenario_config(self):
-        scenario_config = {
-            "start_pos": self.config.poses.start_pos,
-            "goal_pos": self.config.poses.goal_pos,
-            "start_orientation": self.config.poses.start_orientation,
-            "goal_orientation": self.config.poses.goal_orientation
-        }
-        return scenario_config
