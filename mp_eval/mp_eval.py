@@ -68,62 +68,15 @@ class MPEval(Node):
             self.get_logger().error(f"Error during cleanup: {str(e)}")
         self.get_logger().info("Cleanup completed")
 
-# def main(args=None):
-#     rclpy.init(args=args)
-#     node = None
 
-#     def signal_handler(sig, frame):
-#         if node:
-#             node.get_logger().info(f"Received signal {sig}, initiating shutdown...")
-#             node.cleanup()
+# def signal_handler(sig, frame):
+#     global node
+#     if node:
+#         node.get_logger().info(f"Received signal {sig}, initiating shutdown...")
 #         rclpy.shutdown()
 
-#     # Register signal handlers
-#     signal.signal(signal.SIGINT, signal_handler)
-    
-#     # try:
-#     node = MPEval()
-#     # Create a single-threaded executor
-#     executor = rclpy.executors.SingleThreadedExecutor()
-#     executor.add_node(node)
-    
-#     # Start the workload after node is added to executor
-#     node.start()
-    
-#     # Spin the executor instead of the node directly
-#     executor.spin()
-#     # except Exception as e:
-#     #     if node:
-#     #         node.get_logger().error(f"Unexpected error: {str(e)}")
-#     #         # Make sure the error is printed
-#     #         print(f"Error: {str(e)}")
-#     # finally:
-#     if node:
-#         node.cleanup()
-#         node.destroy_node()
-#     executor.shutdown()
-#     try:
-#         rclpy.try_shutdown()
-#     except Exception as e:
-#         print(f"Error during ROS shutdown: {str(e)}")
-
-# if __name__ == '__main__':
-#     main()
-
-
-def signal_handler(sig, frame):
-    global node
-    if node:
-        node.get_logger().info(f"Received signal {sig}, initiating shutdown...")
-        try:
-            node.cleanup()
-        except Exception as e:
-            node.get_logger().error(f"Error during cleanup in signal handler: {e}")
-            traceback.print_exc()
-    rclpy.shutdown()
-
-# Register the SIGINT handler
-signal.signal(signal.SIGINT, signal_handler)
+# # Register the SIGINT handler
+# signal.signal(signal.SIGINT, signal_handler)
 
 def main():
     global node
@@ -153,7 +106,7 @@ def main():
         traceback.print_exc()
         
     finally:
-        # Ensure that the node is properly cleaned up and shutdown is called.
+        # Single cleanup point
         if node:
             try:
                 node.cleanup()
@@ -166,8 +119,10 @@ def main():
         try:
             rclpy.shutdown()
         except Exception as e:
-            print(f"Error during ROS shutdown: {e}")
-            traceback.print_exc()
+            # Change error message to be more specific about shutdown state
+            if "already called" not in str(e):
+                print(f"Error during ROS shutdown: {e}")
+                traceback.print_exc()
 
 if __name__ == '__main__':
     main()
