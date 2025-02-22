@@ -15,13 +15,12 @@ class Poses:
     goal_orientation: List[float]
 @dataclass
 class AgentConfig:
-    detect_shell_radius: float
     mass: float
     radius: float
     max_velocity: float
     approach_distance: float
     force_list: List[str]
-    force_configs: Dict[Dict]
+    force_configs: Dict[str, Dict[str, float]]
     
     @classmethod
     def from_config(cls, config: Dict):
@@ -37,8 +36,8 @@ class AgentConfig:
             radius=config['radius'] if 'radius' in config else 0.0,
             max_velocity=config['max_velocity'] if 'max_velocity' in config else 0.0,
             approach_distance=config['approach_distance'] if 'approach_distance' in config else 0.0,
-            force_list=force_list if 'forces' in config else [],
-            force_configs=force_configs if 'force_configs' in config else {},
+            force_list=force_list,
+            force_configs=force_configs,
         )
 @dataclass
 class PlannerConfig:
