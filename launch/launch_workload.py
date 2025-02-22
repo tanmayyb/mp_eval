@@ -27,7 +27,7 @@ def generate_launch_description():
 
     timed_run_arg = DeclareLaunchArgument(
         'timed_run',
-        default_value='0',
+        default_value='0.0',
         description='Duration of timed run in seconds (0 for unlimited)'
     )
 

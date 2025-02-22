@@ -6,6 +6,7 @@ import os
 import yaml
 import signal
 import traceback
+import time
 
 from mp_eval.workload_manager import WorkloadManager
 # from mp_eval.metrics_collector import MetricsCollector
@@ -24,11 +25,13 @@ class MPEval(Node):
         self.declare_parameter('ws_dir', '.')
         self.declare_parameter('workload', '.')
         self.declare_parameter('results_dir', './plans/results')
+        self.declare_parameter('timed_run', 0.0)  # Add timed_run parameter
 
         # Get parameter values
         self.ws_dir = self.get_parameter('ws_dir').value
         self.results_dir = self.get_parameter('results_dir').value
         self.workload = self.get_parameter('workload').value
+        self.timed_run = self.get_parameter('timed_run').value  # Get timed_run value
 
         # Set workspace directory in environment
         os.environ['WS_DIR'] = self.ws_dir
@@ -46,17 +49,31 @@ class MPEval(Node):
             
         self.get_logger().info("Starting MPEval node...")
         try:
-            # self.metrics_collector = MetricsCollector(self)
             self.workload_manager = WorkloadManager(
-                self.get_logger().get_child('workload_manager'), 
-                # self.metrics_collector
+                self.get_logger().get_child('workload_manager')
             )
             self.workload_manager.add_workload(self.workload)
+            
+            if self.timed_run > 0.0:
+                # Create timer for timed run
+                self.create_timer(self.timed_run, self._timed_run_callback)
+                self.get_logger().info(f"Running workload for {self.timed_run} seconds")
+            else:
+                self.get_logger().warn("Running workload indefinitely")
+                
             self.workload_manager.run()
             self.initialized = True
         except Exception as e:
             self.get_logger().error(f"Error starting workload: {str(e)}")
             raise
+
+    def _timed_run_callback(self):
+        """Callback for timed run to stop the node"""
+        self.get_logger().info(f"Timed run completed after {self.timed_run} seconds")
+        # os.kill(os.getpid(), signal.SIGINT)
+        os.killpg(os.getpgid(os.getpid()), signal.SIGINT)
+        # os.killpg(os.getpgid(os.getpid()), signal.SIGTERM)
+        time.sleep(1)  
 
     def cleanup(self):
         """Cleanup function to ensure graceful shutdown"""
