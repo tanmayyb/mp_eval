@@ -14,6 +14,7 @@ class Workload:
         self.percept_interface = None
 
         self.config = WorkloadConfig.from_yaml(self.config_path)
+        self.workload_name = self.config.metadata.name
         self.planner_interface = PlannerInterface(self.config, self.logger.get_child('planner_interface'))
         self.percept_interface = PerceptInterface(self.config, self.logger.get_child('percept_interface'))
 
