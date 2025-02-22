@@ -5,6 +5,9 @@ from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
 from mp_eval.classes.workload import WorkloadConfig  # plus other imports as needed
 from mp_eval.classes.scene_generator import SceneGenerator
+import os
+import time
+from threading import Thread
 
 class PerceptInterface:
     def __init__(self, config: WorkloadConfig, logger):
@@ -12,6 +15,14 @@ class PerceptInterface:
         self.config = config.percept_config
         self.logger = logger
         self.logger.set_level(logging.DEBUG)
+        # Add log file path
+        self.log_path = Path(os.environ.get('RESULTS_DIR', '.')) / "percept.log"
+        self.workload_name = config.metadata.name
+
+        # Clear the log file on startup
+        with open(self.log_path, 'w') as f:
+            f.write(f"=== Percept Log Started at {time.strftime('%Y-%m-%d %H:%M:%S')} for Workload: {self.workload_name} ===\n")
+
         # Store node specifications by node name.
         self.active_nodes: Dict[str, Dict[str, Any]] = {}
         # Store subprocess.Popen objects by node name.
@@ -152,6 +163,13 @@ class PerceptInterface:
         scene_generator = SceneGenerator(self.config.scene_config, self.logger.get_child('scene_generator'), self.pkg_dir)
         scene_generator.generate_scene()
     
+    def _log_subprocess_output(self, output: str, prefix: str = ""):
+        """Log subprocess output to both logger and file"""
+        if output:
+            with open(self.log_path, 'a') as f:
+                f.write(f"\n=== {prefix} ===\n")
+                f.write(output)
+
     def _launch_nodes(self):
         """
         Launch all configured nodes as non-blocking subprocesses.
@@ -159,11 +177,28 @@ class PerceptInterface:
         for node_name, node_spec in self.active_nodes.items():
             cmd = self._node_to_command(node_spec)
             self.logger.debug(f"Launching node '{node_name}' with command: {' '.join(cmd)}")
-            # For rviz2, avoid redirecting stdout/stderr so the GUI can pop up.
+            
+            # For rviz2, avoid redirecting stdout/stderr so the GUI can pop up
             if node_spec["name"] == "perception_rviz":
                 process = subprocess.Popen(cmd)
             else:
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True
+                )
+                
+                # Start background threads to continuously log output
+                def log_output(pipe, prefix):
+                    for line in pipe:
+                        self._log_subprocess_output(line.strip(), f"{node_name} {prefix}")
+                
+                Thread(target=log_output, args=(process.stdout, "STDOUT"), daemon=True).start()
+                Thread(target=log_output, args=(process.stderr, "STDERR"), daemon=True).start()
+                
             self.active_processes[node_name] = process
     
     def _shutdown_nodes(self):
