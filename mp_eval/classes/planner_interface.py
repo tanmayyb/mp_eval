@@ -15,6 +15,10 @@ class PlannerInterface:
         self.logger = logger
         self.logger.set_level(logging.DEBUG)
         self.log_path = Path(os.environ.get('RESULTS_DIR', '.')) / "planner.log"
+        
+        # Clear the log file on startup
+        with open(self.log_path, 'w') as f:
+            f.write(f"=== Planner Log Started at {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
 
         # docker container config
         self.image_name = 'percept-ga_cf_planner'
