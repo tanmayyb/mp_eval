@@ -251,6 +251,8 @@ class MetricsCollectorNode(Node):
             self._drain_log_queue()
 
         self.log_handle.close()
+        self.logger.info(f"\033[32mLogged to {self.log_file}\033[0m")
+        self.logger.debug("Metrics collector node shutdown complete")
 
 
 def main(args=None):
