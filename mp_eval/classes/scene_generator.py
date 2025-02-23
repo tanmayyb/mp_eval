@@ -23,6 +23,11 @@ class SceneGenerator:
             or scene_generation_type == "hole_in_the_wall":
             from mp_eval.assets.procedural.wall_generator import WallGenerator
             self._add_asset_generator(WallGenerator(scene_generation_params))
+        elif scene_generation_type == "walls" \
+            or scene_generation_type == "narrow_passage"\
+            or scene_generation_type == "trap":
+            from mp_eval.assets.procedural.walls_generator import WallsGenerator
+            self._add_asset_generator(WallsGenerator(scene_generation_params))
         else:
             raise ValueError(f"Scene generation type {scene_generation_type} not supported")
 
