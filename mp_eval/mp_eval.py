@@ -24,7 +24,7 @@ class MPEval(Node):
     def setup(self):
         self.declare_parameter('ws_dir', '.')
         self.declare_parameter('workload', '.')
-        self.declare_parameter('results_dir', './plans/results')
+        self.declare_parameter('results_dir', './eval/results')
         self.declare_parameter('timed_run', 0.0)  # Add timed_run parameter
 
         # Get parameter values

@@ -45,7 +45,7 @@ class MetricsCollectorNode(Node):
         """Initialize and process node parameters."""
         self.declare_parameter('ws_dir', '.')
         self.declare_parameter('workload', '.')
-        self.declare_parameter('results_dir', './plans/results')
+        self.declare_parameter('results_dir', './eval/results')
         self.declare_parameter('sampling_period', 0.5)
         
         # Get parameters and set environment variables
