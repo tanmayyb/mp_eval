@@ -15,7 +15,7 @@ class PlannerInterface:
         self.logger = logger
         self.logger.set_level(logging.DEBUG)
         self.log_path = Path(os.environ.get('RESULTS_DIR', '.')) / "planner.log"
-        self.workload_name = config.metadata.name
+        self.workload_name = config.metadata.label
 
         # Clear the log file on startup
         with open(self.log_path, 'w') as f:

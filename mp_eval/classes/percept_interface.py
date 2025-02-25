@@ -17,7 +17,7 @@ class PerceptInterface:
         self.logger.set_level(logging.DEBUG)
         # Add log file path
         self.log_path = Path(os.environ.get('RESULTS_DIR', '.')) / "percept.log"
-        self.workload_name = config.metadata.name
+        self.workload_name = config.metadata.label
 
         # Clear the log file on startup
         with open(self.log_path, 'w') as f:
@@ -134,7 +134,8 @@ class PerceptInterface:
                 'max_allowable_force': self.config.fields_config.max_allowable_force,
                 'detect_shell_rad': self.config.fields_config.detect_shell_radius,
                 'publish_force_vector': self.config.fields_config.publish_force_vector,
-                'show_processing_delay': self.config.fields_config.show_processing_delay
+                'show_processing_delay': self.config.fields_config.show_processing_delay,
+                'show_requests': self.config.fields_config.show_requests,
             },
             remappings=[
                 ('/get_obstacle_heuristic_circforce', f'/{self.config.namespace}/get_obstacle_heuristic_force'),
@@ -142,6 +143,8 @@ class PerceptInterface:
                 ('/get_velocity_heuristic_circforce', f'/{self.config.namespace}/get_velocity_heuristic_force'),
                 ('/get_goalobstacle_heuristic_circforce', f'/{self.config.namespace}/get_goalobstacle_heuristic_force'),
                 ('/get_random_heuristic_circforce', f'/{self.config.namespace}/get_random_heuristic_force'),
+                ('/get_min_obstacle_distance', f'/{self.config.namespace}/get_min_obstacle_distance'),
+
             ]
         )
     

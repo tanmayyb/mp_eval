@@ -4,9 +4,11 @@ from typing import List, Dict, Tuple, Optional
 
 @dataclass
 class Metadata:
-    name: str
-    datetime: str
-    description: str
+    created_at: str
+    plan_name: str
+    label: str
+    tags: List[str]
+    info: str
 @dataclass
 class Poses:
     start_pos: List[float]
@@ -46,6 +48,11 @@ class PlannerConfig:
     service_timeout: int
     delta_t: float
     max_prediction_steps: int
+    planning_frequency: int
+    agent_switch_factor: float
+    path_length_cost_weight: float
+    goal_distance_cost_weight: float
+    obstacle_distance_cost_weight: float
     poses: Poses # to be stored in start_goal.yaml
     agents: List[AgentConfig] # to be stored in scenario_config.yaml
 @dataclass
@@ -84,6 +91,7 @@ class FieldsConfig:
     detect_shell_radius: float
     publish_force_vector: bool
     show_processing_delay: bool
+    show_requests: bool
     @classmethod
     def from_config(cls, config: Dict):
         return cls(
@@ -98,7 +106,8 @@ class FieldsConfig:
             max_allowable_force=config['max_allowable_force'],
             detect_shell_radius=config['detect_shell_radius'] if 'detect_shell_radius' in config else 0.0,
             publish_force_vector=config['publish_force_vector'] if 'publish_force_vector' in config else False,
-            show_processing_delay=config['show_processing_delay'] if 'show_processing_delay' in config else False
+            show_processing_delay=config['show_processing_delay'] if 'show_processing_delay' in config else False,
+            show_requests=config['show_requests'] if 'show_requests' in config else False
         )
 @dataclass
 class RvizConfig:
@@ -153,8 +162,13 @@ class WorkloadConfig:
                 service_timeout=planner_data['service_timeout'],
                 delta_t=planner_data['delta_t'],
                 max_prediction_steps=planner_data['max_prediction_steps'],
+                planning_frequency=planner_data['planning_frequency'],
+                agent_switch_factor=planner_data['agent_switch_factor'],
                 poses=poses,
-                agents=agents
+                agents=agents,
+                path_length_cost_weight=planner_data['path_length_cost_weight'],
+                goal_distance_cost_weight=planner_data['goal_distance_cost_weight'],
+                obstacle_distance_cost_weight=planner_data['obstacle_distance_cost_weight']
             )
             
             percept_data = data['percept_config']
@@ -189,7 +203,8 @@ class PlannerYaml:
                 "velocity_heuristic_force",
                 "goal_heuristic_force",
                 "goalobstacle_heuristic_force",
-                "random_heuristic_force"
+                "random_heuristic_force",
+                "obstacle_distance_cost_client"
             ],
             "callback_servers": [],
             "publisher": {
@@ -229,6 +244,12 @@ class PlannerYaml:
                     "callback_request": "get_random_heuristic_force",
                     "callback_response": "random_heuristic_force_response",
                     "timeout": self.config.service_timeout
+                },
+                "obstacle_distance_cost_client": {
+                    "type": "obstacle_distance_cost",
+                    "callback_request": "get_min_obstacle_distance",
+                    "callback_response": "obstacle_distance_response",
+                    "timeout": self.config.service_timeout
                 }
             },
             "cf_planner": {
@@ -236,13 +257,24 @@ class PlannerYaml:
                 "agent_type": "pointmass", # TODO: make this dynamic
                 "delta_t": self.config.delta_t,
                 "max_prediction_steps": self.config.max_prediction_steps,
+                "planning_frequency": self.config.planning_frequency,
                 "prediction_freq_multiple": 1,
                 "approach_distance": 0.25,
-                "k_workspace": 1.0,
-                "k_goal_distance": 1.0,
-                "k_path_length": 1.0,
-                "k_safe_distance": 1.0,
-                "workspace_limits": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                "agent_switch_factor": self.config.agent_switch_factor,
+                "costs": [
+                    "path_length_cost",
+                    "goal_distance_cost",
+                    "obstacle_distance_cost"
+                ],
+                "path_length_cost": {
+                    "weight": self.config.path_length_cost_weight
+                },
+                "goal_distance_cost": {
+                    "weight": self.config.goal_distance_cost_weight
+                },
+                "obstacle_distance_cost": {
+                    "weight": self.config.obstacle_distance_cost_weight
+                }
             }
         }
 

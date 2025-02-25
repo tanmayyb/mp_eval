@@ -67,8 +67,9 @@ class MetricsCollectorNode(Node):
     def _setup_logging(self):
         """Setup logging infrastructure including file handling and worker thread."""
         # Create log directory
-        self.workload_name = self.workload_config.metadata.name
-        self.log_dir = self.results_dir / self.workload_name
+        self.workload_name = self.workload_config.metadata.label
+        self.plan_name = self.workload_config.metadata.plan_name
+        self.log_dir = self.results_dir / self.plan_name
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
         # Create log file with timestamp

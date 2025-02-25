@@ -3,6 +3,7 @@ from mp_eval.classes.planner_interface import PlannerInterface
 from mp_eval.classes.percept_interface import PerceptInterface
 # from mp_eval.metrics_collector import MetricsCollector
 import logging
+import time
 
 class Workload:
     def __init__(self, config_path: str, logger):
@@ -14,7 +15,7 @@ class Workload:
         self.percept_interface = None
 
         self.config = WorkloadConfig.from_yaml(self.config_path)
-        self.workload_name = self.config.metadata.name
+        self.workload_name = self.config.metadata.label
         self.planner_interface = PlannerInterface(self.config, self.logger.get_child('planner_interface'))
         self.percept_interface = PerceptInterface(self.config, self.logger.get_child('percept_interface'))
 
