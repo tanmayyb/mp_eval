@@ -114,32 +114,26 @@ def main():
         
         # Spin the executor (blocking call)
         executor.spin()
-        
+    except KeyboardInterrupt:
+        print("Keyboard interrupt received, shutting down...")
+        node.cleanup()        
     except Exception as e:
         # Log the error with full traceback
         if node:
             node.get_logger().error(f"Unexpected error: {e}")
         print("Unexpected error occurred:")
         traceback.print_exc()
-        
     finally:
         # Single cleanup point
         if node:
             try:
                 node.cleanup()
-                node.destroy_node()
+                # node.destroy_node()
             except Exception as e:
                 print(f"Error during node cleanup: {e}")
                 traceback.print_exc()
         if executor:
             executor.shutdown()
-        try:
-            rclpy.shutdown()
-        except Exception as e:
-            # Change error message to be more specific about shutdown state
-            if "already called" not in str(e):
-                print(f"Error during ROS shutdown: {e}")
-                traceback.print_exc()
 
 if __name__ == '__main__':
     main()
