@@ -51,7 +51,7 @@ class PlannerInterface:
         with open(scenario_config_path, 'w') as f:
             yaml.dump(scenario_config, f, default_flow_style=False, sort_keys=False, indent=2)
         
-        self.launch_command = f"ros2 launch {self.package_name} {launch_file}"
+        self.launch_command = f"ros2 launch {self.package_name} {launch_file} enable_rviz:=false"
         
 
     def _log_subprocess_output(self, output: str, prefix: str = ""):

@@ -80,31 +80,31 @@ class SceneConfig:
 @dataclass
 class FieldsConfig:
     # k_circular_force: float # deprecated
-    k_cf_velocity: float
-    k_cf_obstacle: float
-    k_cf_goal: float
-    k_cf_goalobstacle: float
-    k_cf_random: float
+    # k_cf_velocity: float
+    # k_cf_obstacle: float
+    # k_cf_goal: float
+    # k_cf_goalobstacle: float
+    # k_cf_random: float
     agent_radius: float
     mass_radius: float
-    max_allowable_force: float
-    detect_shell_radius: float
+    # max_allowable_force: float
+    # detect_shell_radius: float
     publish_force_vector: bool
     show_processing_delay: bool
     show_requests: bool
     @classmethod
     def from_config(cls, config: Dict):
         return cls(
-            # k_circular_force=config['k_circular_force'], # deprecated
-            k_cf_velocity=config['k_cf_velocity'] if 'k_cf_velocity' in config else 0.0,
-            k_cf_obstacle=config['k_cf_obstacle'] if 'k_cf_obstacle' in config else 0.0,
-            k_cf_goal=config['k_cf_goal'] if 'k_cf_goal' in config else 0.0,
-            k_cf_goalobstacle=config['k_cf_goalobstacle'] if 'k_cf_goalobstacle' in config else 0.0,
-            k_cf_random=config['k_cf_random'] if 'k_cf_random' in config else 0.0,
+            # # k_circular_force=config['k_circular_force'], # deprecated
+            # k_cf_velocity=config['k_cf_velocity'] if 'k_cf_velocity' in config else 0.0,
+            # k_cf_obstacle=config['k_cf_obstacle'] if 'k_cf_obstacle' in config else 0.0,
+            # k_cf_goal=config['k_cf_goal'] if 'k_cf_goal' in config else 0.0,
+            # k_cf_goalobstacle=config['k_cf_goalobstacle'] if 'k_cf_goalobstacle' in config else 0.0,
+            # k_cf_random=config['k_cf_random'] if 'k_cf_random' in config else 0.0,
             agent_radius=config['agent_radius'],
             mass_radius=config['mass_radius'],
-            max_allowable_force=config['max_allowable_force'],
-            detect_shell_radius=config['detect_shell_radius'] if 'detect_shell_radius' in config else 0.0,
+            # max_allowable_force=config['max_allowable_force'],
+            # detect_shell_radius=config['detect_shell_radius'] if 'detect_shell_radius' in config else 0.0,
             publish_force_vector=config['publish_force_vector'] if 'publish_force_vector' in config else False,
             show_processing_delay=config['show_processing_delay'] if 'show_processing_delay' in config else False,
             show_requests=config['show_requests'] if 'show_requests' in config else False
@@ -196,7 +196,8 @@ class PlannerYaml:
             "publishers": [
                 # "trajectory", 
                 "target", "pose", 'best_agent_name']\
-                    +[f"agent_{i}_planning_time" for i in range(1, len(self.config.agents) + 1)], # planning time for each agent
+                    +[f"agent_{i}_planning_time" for i in range(1, len(self.config.agents) + 1)] # planning time for each agent
+                    +[f"agent_{i}_cost" for i in range(1, len(self.config.agents) + 1)], # cost for each agent
             "subscribers": [],
             "callback_clients": [
                 "obstacle_heuristic_force",
@@ -212,7 +213,8 @@ class PlannerYaml:
                 "target": {"type": "gafro_motor", "topic": "target", "callback_queue": "target"},
                 "pose": {"type": "gafro_motor", "topic": "pose", "callback_queue": "pose"},
                 "best_agent_name": {"type": "ros_string", "topic": "best_agent_name", "callback_queue": "best_agent_name"},
-                **{f"agent_{i}_planning_time": {"type": "ros_float64", "topic": f"agent_{i}/planning_time", "callback_queue": f"cf_planner/agent_{i}/planning_time"} for i in range(1, len(self.config.agents) + 1)}
+                **{f"agent_{i}_planning_time": {"type": "ros_float64", "topic": f"agent_{i}/planning_time", "callback_queue": f"cf_planner/agent_{i}/planning_time"} for i in range(1, len(self.config.agents) + 1)},
+                **{f"agent_{i}_cost": {"type": "ros_float64", "topic": f"agent_{i}/cost", "callback_queue": f"cf_planner/agent_{i}/cost"} for i in range(1, len(self.config.agents) + 1)}
             },
             "callback_client": {
                 "obstacle_heuristic_force": {
