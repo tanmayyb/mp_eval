@@ -130,6 +130,14 @@ class MetricsCollectorNode(Node):
                 qos_profile_sensor_data
             )  
 
+        for i in range(1, len(self.workload_config.planner_config.agents) + 1):
+            self.subs[f'agent_{i}_cost'] = self.create_subscription(
+                Float64,
+                f'/{namespace}/agent_{i}/cost',
+                partial(self._process_agent_cost_msg, agent_id=i),
+                qos_profile_sensor_data
+            )  
+
     def _log_worker(self):
         """Process log messages from queue until signaled to stop."""
         while not self.stop_logging:
@@ -211,6 +219,16 @@ class MetricsCollectorNode(Node):
             'type': 'agent_planning_time',
             'timestamp': self.get_clock().now().nanoseconds * 1e-9,
             'planning_time': msg.data,
+            'agent_id': agent_id
+        } 
+        self.log_queue.put(record)
+
+    def _process_agent_cost_msg(self, msg: Float64, agent_id: int):
+        """Process agent cost message."""
+        record = {
+            'type': 'agent_cost',
+            'timestamp': self.get_clock().now().nanoseconds * 1e-9,
+            'cost': msg.data,
             'agent_id': agent_id
         } 
         self.log_queue.put(record)
