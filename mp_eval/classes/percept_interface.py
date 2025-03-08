@@ -119,20 +119,15 @@ class PerceptInterface:
     
     def _setup_fields_computer_node(self):
         # Add fields computer node.
+        node_executable = "fields_computer" if not self.config.fields_config.use_cpu else "fields_computer_cpu"
+
         self._add_node(
             package_name="percept",
-            node_executable="fields_computer",
-            node_name="fields_computer",
+            node_executable=node_executable,
+            node_name=node_executable,
             parameters={
-                # 'k_cf_velocity': self.config.fields_config.k_cf_velocity,
-                # 'k_cf_obstacle': self.config.fields_config.k_cf_obstacle,
-                # 'k_cf_goal': self.config.fields_config.k_cf_goal,
-                # 'k_cf_goalobstacle': self.config.fields_config.k_cf_goalobstacle,
-                # 'k_cf_random': self.config.fields_config.k_cf_random,
                 'agent_radius': self.config.fields_config.agent_radius,
                 'mass_radius': self.config.fields_config.mass_radius,
-                # 'max_allowable_force': self.config.fields_config.max_allowable_force,
-                # 'detect_shell_rad': self.config.fields_config.detect_shell_radius,
                 'publish_force_vector': self.config.fields_config.publish_force_vector,
                 'show_processing_delay': self.config.fields_config.show_processing_delay,
                 'show_requests': self.config.fields_config.show_requests,
@@ -143,8 +138,7 @@ class PerceptInterface:
                 ('/get_velocity_heuristic_circforce', f'/{self.config.namespace}/get_velocity_heuristic_force'),
                 ('/get_goalobstacle_heuristic_circforce', f'/{self.config.namespace}/get_goalobstacle_heuristic_force'),
                 ('/get_random_heuristic_circforce', f'/{self.config.namespace}/get_random_heuristic_force'),
-                ('/get_min_obstacle_distance', f'/{self.config.namespace}/get_min_obstacle_distance'),
-
+                ('/get_min_obstacle_distance', f'/{self.config.namespace}/get_min_obstacle_distance')
             ]
         )
     
