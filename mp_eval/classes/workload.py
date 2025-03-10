@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import yaml
 from typing import List, Dict, Tuple, Optional
 
@@ -28,10 +28,15 @@ class AgentConfig:
     def from_config(cls, config: Dict):
         force_configs = {}
         force_list = []
-
-        for force_label, force_config in config['forces'].items():
-            force_configs[force_label] = force_config
-            force_list.append(force_label)
+        if 'forces' in config:
+            for force_label, force_config in config['forces'].items():
+                force_configs[force_label] = force_config
+                force_list.append(force_label)
+        elif 'force_list' in config and 'force_configs' in config:
+            force_list = config['force_list']
+            force_configs = config['force_configs']
+        else:
+            raise ValueError("Invalid agent config. Please specify either 'forces' or 'force_list' and 'force_configs'.")
 
         return cls(
             mass=config['mass'] if 'mass' in config else 0.0,
@@ -41,6 +46,8 @@ class AgentConfig:
             force_list=force_list,
             force_configs=force_configs,
         )
+
+
 @dataclass
 class PlannerConfig:
     experiment_type: str
@@ -165,6 +172,9 @@ class WorkloadConfig:
                 planner_config=planner_config, 
                 percept_config=percept_config
             )
+        
+    def to_yaml(self):
+        return yaml.dump(asdict(self), default_flow_style=False, sort_keys=False, indent=2)
 
 
 @dataclass
