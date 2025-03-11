@@ -28,6 +28,9 @@ class SceneGenerator:
             or scene_generation_type == "trap":
             from mp_eval.assets.procedural.walls_generator import WallsGenerator
             self._add_asset_generator(WallsGenerator(scene_generation_params))
+        elif scene_generation_type == "cluttered":
+            from mp_eval.assets.procedural.cluttered import ClutteredGenerator
+            self._add_asset_generator(ClutteredGenerator(scene_generation_params))
         else:
             raise ValueError(f"Scene generation type {scene_generation_type} not supported")
 
