@@ -16,27 +16,30 @@ class Workload:
 
         self.config = WorkloadConfig.from_yaml(self.config_path)
         self.workload_name = self.config.metadata.label
-        self.planner_interface = PlannerInterface(self.config, self.logger.get_child('planner_interface'))
         self.percept_interface = PerceptInterface(self.config, self.logger.get_child('percept_interface'))
+        self.planner_interface = PlannerInterface(self.config, self.logger.get_child('planner_interface'))
+
 
     def setup(self):
-        if not self.disable_planner:
-            self.planner_interface.setup()
         if not self.disable_percept:
             self.percept_interface.setup()
+        if not self.disable_planner:
+            self.planner_interface.setup()
         self.logger.info(f"Workload setup complete")
 
     def execute(self):    
-        if not self.disable_planner:
-            self.planner_interface.execute()
         if not self.disable_percept:
             self.percept_interface.execute()
 
-    def teardown(self):
+        time.sleep(5)
         if not self.disable_planner:
-            self.planner_interface.teardown()
+            self.planner_interface.execute()
+
+    def teardown(self):
         if not self.disable_percept:
             self.percept_interface.teardown()
+        if not self.disable_planner:
+            self.planner_interface.teardown()
 
     def run(self, disable_planner=False, disable_percept=False, disable_execute=False):
         self.disable_planner = disable_planner
