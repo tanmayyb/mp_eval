@@ -88,6 +88,7 @@ class SceneConfig:
 class FieldsConfig:
     agent_radius: float
     mass_radius: float
+    potential_detect_shell_rad: float
     publish_force_vector: bool
     show_processing_delay: bool
     show_requests: bool
@@ -100,7 +101,8 @@ class FieldsConfig:
             publish_force_vector=config['publish_force_vector'] if 'publish_force_vector' in config else False,
             show_processing_delay=config['show_processing_delay'] if 'show_processing_delay' in config else False,
             show_requests=config['show_requests'] if 'show_requests' in config else False,
-            use_cpu=config['use_cpu'] if 'use_cpu' in config else False
+            use_cpu=config['use_cpu'] if 'use_cpu' in config else False,
+            potential_detect_shell_rad=config['potential_detect_shell_rad'] if 'potential_detect_shell_rad' in config else 1.0
         )
 @dataclass
 class RvizConfig:

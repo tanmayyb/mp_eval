@@ -131,6 +131,7 @@ class PerceptInterface:
                 'publish_force_vector': self.config.fields_config.publish_force_vector,
                 'show_processing_delay': self.config.fields_config.show_processing_delay,
                 'show_requests': self.config.fields_config.show_requests,
+                'potential_detect_shell_rad': self.config.fields_config.potential_detect_shell_rad
             },
             remappings=[
                 ('/get_obstacle_heuristic_circforce', f'/{self.config.namespace}/get_obstacle_heuristic_force'),
@@ -216,10 +217,10 @@ class PerceptInterface:
     
     def setup(self):
         self._setup_scene()
-        self._setup_scene_nodes()
         self._setup_fields_computer_node()
         self._setup_rviz_node()
-    
+        self._setup_scene_nodes()
+
     def execute(self):
         self._launch_nodes()
     
