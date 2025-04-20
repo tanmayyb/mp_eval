@@ -9,6 +9,7 @@ class Metadata:
     label: str
     tags: List[str]
     info: str
+    run_planner_profiler: bool
 @dataclass
 class Poses:
     start_pos: List[float]
@@ -141,11 +142,18 @@ class WorkloadConfig:
         with open(yaml_path, 'r') as file:
             data = yaml.safe_load(file)
             
-            metadata = Metadata(**data['metadata'])
+            # metadata = Metadata(**data['metadata'])
+            metadata = Metadata(
+                created_at=data['metadata']['created_at'],
+                plan_name=data['metadata']['plan_name'],
+                label=data['metadata']['label'],
+                tags=data['metadata']['tags'],
+                info=data['metadata']['info'],
+                run_planner_profiler=data['metadata']['run_planner_profiler'] if 'run_planner_profiler' in data['metadata'] else False
+            )
             
             planner_data = data['planner_config']
             poses = Poses(**planner_data['poses'])
-            
             agents = []
             for agent_data in planner_data['agents']:
                 agent = AgentConfig.from_config(agent_data)

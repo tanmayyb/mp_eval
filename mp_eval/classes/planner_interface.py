@@ -7,7 +7,7 @@ from threading import Thread
 import yaml
 from dataclasses import dataclass
 from mp_eval.classes.workload import WorkloadConfig, PlannerYaml
-        
+from datetime import datetime
 
 class PlannerInterface:
     def __init__(self, config: WorkloadConfig, logger):
@@ -27,7 +27,8 @@ class PlannerInterface:
         self.package_name = 'experiments'
         self.launch_command = None
         self.process = None
-
+        self.vtune_process = None
+        self.vtune_result_dir = 'traces/vtune'
 
     def _create_workload_config(self):
         """Create scenario_config.yaml and start_goal.yaml from workload config"""
@@ -42,6 +43,8 @@ class PlannerInterface:
             setup_config_path = config_dir / "oriented_pointmass_config.yaml"
             scenario_config_path = config_dir / "start_goal.yaml"
             launch_file = "oriented_pointmass_launch.py"
+            run_profiler = self.config.metadata.run_planner_profiler
+            self.target_node_name = "oriented_pointmass"
         else:
             raise ValueError(f"Experiment type {planner_yaml.config.experiment_type} not supported")
 
@@ -52,7 +55,7 @@ class PlannerInterface:
             yaml.dump(scenario_config, f, default_flow_style=False, sort_keys=False, indent=2)
         
         self.launch_command = f"ros2 launch {self.package_name} {launch_file} enable_rviz:=false"
-        
+
 
     def _log_subprocess_output(self, output: str, prefix: str = ""):
         """Log subprocess output to both logger and file"""
@@ -114,7 +117,7 @@ class PlannerInterface:
     def _execute_container_command(self):
         try:
             self.logger.debug("Launching planner node")
-            ws_dir = os.environ['WS_DIR']
+            ws_dir = os.environ['WS_DIR']                
 
             # Launch the ROS2 node in the background
             launch_cmd = f". install/setup.bash && exec {self.launch_command}"
@@ -148,7 +151,78 @@ class PlannerInterface:
             Thread(target=log_output, args=(self.process.stderr, "PLANNER STDERR"), daemon=True).start()
             
             self.logger.debug("Planner node launched")
-            
+
+            time.sleep(0.5)
+            # Check if profiling is enabled
+            if self.config.metadata.run_planner_profiler:
+                self.logger.debug("Starting VTune profiling for the planner")
+                # Create a timestamp for the result directory
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                result_name = f"{self.workload_name}_{timestamp}"
+
+                # Ensure the result directory exists in the container
+                mkdir_cmd = f"mkdir -p /ros2_ws/{self.vtune_result_dir}"
+                subprocess.run(
+                    ['docker', 'exec', self.container_name, 'bash', '-c', mkdir_cmd],
+                    check=True
+                )
+
+                # Get PID of the target node
+                target_node_name = self.target_node_name
+                target_node_exec = f"/{target_node_name}"
+                try:
+                    def get_pid():
+                        import re
+                        get_pid_cmd = f"ps -eo pid,cmd | grep -v grep | grep '{target_node_name}'"
+                        # get_pid_cmd = f"ps -eo pid,cmd | grep -v grep | grep 'oriented_pointmass'"
+
+                        result = subprocess.run(
+                            ['docker', 'exec', self.container_name, 'bash', '-c', get_pid_cmd],
+                            capture_output=True,
+                            text=True,
+                            check=True
+                        )
+                        pid = None
+
+                        matches = re.findall(r"^\s*(\d+).*?__node:=(\S+)", result.stdout, re.MULTILINE)
+                        for pid_, node_ in matches:
+                            self.logger.debug(f"PID: {pid_}, Node: {node_}")
+                            if node_ == target_node_name:
+                                pid = pid_
+                        if pid is None:
+                            raise ValueError(f"Could not find PID for {target_node_name} in container")
+                        self.logger.debug(f"Found {target_node_name} process with PID {pid}")  
+                        return pid
+
+                    planner_node_pid = get_pid()
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"Error getting PID of {self.target_node_name} in container: {str(e)}")
+
+                # Start VTune profiling in a separate process
+                vtune_cmd = (
+                    f"vtune -collect hotspots -knob sampling-mode=hw "
+                    f"-result-dir=/ros2_ws/{self.vtune_result_dir}/{result_name} "
+                    f"-target-pid={planner_node_pid} "
+                    f"-duration=0 "  # Run until stopped manually
+                    f"--follow-child"  # Profile child processes as well
+                )
+
+                self.vtune_process = subprocess.Popen(
+                    ['docker', 'exec', self.container_name, 'bash', '-c', vtune_cmd],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True
+                )
+
+                # Start threads to log VTune output
+                Thread(target=log_output, args=(self.vtune_process.stdout, "VTUNE STDOUT"), daemon=True).start()
+                Thread(target=log_output, args=(self.vtune_process.stderr, "VTUNE STDERR"), daemon=True).start()
+
+                self.logger.debug(f"VTune profiling started for PID {planner_node_pid}. Results will be in {self.vtune_result_dir}/{result_name}")
+
+
         except Exception as e:
             self._log_subprocess_output(str(e), "ERROR")
             self.logger.error(f"Container execution error: {str(e)}")
@@ -157,6 +231,23 @@ class PlannerInterface:
     def _teardown_docker_container(self):
         try:
             self.logger.debug("Stopping planner process")
+            
+            # First stop VTune profiling if it was started
+            if self.vtune_process and self.vtune_process.poll() is None:
+                self.logger.debug("Stopping VTune profiler")
+                # Send SIGINT to the VTune process
+                self.vtune_process.send_signal(subprocess.signal.SIGINT)
+                
+                # Wait for profiler to finish processing and saving results
+                try:
+                    self.vtune_process.wait(timeout=2)
+                    self.logger.debug("VTune profiler stopped gracefully")
+                except subprocess.TimeoutExpired:
+                    self.logger.warning("VTune profiler didn't stop gracefully, forcing termination")
+                    self.vtune_process.kill()
+                
+                # Wait a moment for VTune to finalize any data
+                time.sleep(0.5)
             
             if self.process and self.process.poll() is None:
                 # Send SIGINT to all ROS processes in the container
