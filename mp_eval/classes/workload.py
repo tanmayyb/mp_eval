@@ -90,7 +90,6 @@ class FieldsConfig:
     agent_radius: float
     mass_radius: float
     potential_detect_shell_rad: float
-    publish_force_vector: bool
     show_processing_delay: bool
     show_requests: bool
     use_cpu: bool
@@ -99,7 +98,6 @@ class FieldsConfig:
         return cls(
             agent_radius=config['agent_radius'],
             mass_radius=config['mass_radius'],
-            publish_force_vector=config['publish_force_vector'] if 'publish_force_vector' in config else False,
             show_processing_delay=config['show_processing_delay'] if 'show_processing_delay' in config else False,
             show_requests=config['show_requests'] if 'show_requests' in config else False,
             use_cpu=config['use_cpu'] if 'use_cpu' in config else False,

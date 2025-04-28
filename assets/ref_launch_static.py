@@ -62,7 +62,6 @@ def generate_launch_description():
                 'mass_radius': 0.025,
                 'max_allowable_force': 20.0,
                 'detect_shell_rad': 100000.0,
-                'publish_force_vector': False,
                 'show_processing_delay': True,
             }],
             remappings=[

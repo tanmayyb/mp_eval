@@ -128,7 +128,6 @@ class PerceptInterface:
             parameters={
                 'agent_radius': self.config.fields_config.agent_radius,
                 'mass_radius': self.config.fields_config.mass_radius,
-                'publish_force_vector': self.config.fields_config.publish_force_vector,
                 'show_processing_delay': self.config.fields_config.show_processing_delay,
                 'show_requests': self.config.fields_config.show_requests,
                 'potential_detect_shell_rad': self.config.fields_config.potential_detect_shell_rad
