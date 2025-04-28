@@ -124,8 +124,13 @@ class PlannerInterface:
             # Launch the ROS2 node in the background
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             result_name = f"{self.workload_name}_{timestamp}"
-            launch_cmd = f". install/setup.bash && exec vtune -collect threading -result-dir=/ros2_ws/{self.vtune_result_dir}/{result_name} -duration=20 -- {self.launch_command}"
 
+            if self.config.metadata.run_planner_profiler:
+                launch_cmd = f". install/setup.bash && exec vtune -collect threading -result-dir=/ros2_ws/{self.vtune_result_dir}/{result_name} -duration=20 -- {self.launch_command}"
+                self.logger.debug(f"Launching planner node with vtune profiler")
+            else:
+                launch_cmd = f". install/setup.bash && exec {self.launch_command}"
+                self.logger.debug(f"Launching planner node without vtune profiler")
 
             self.process = subprocess.Popen(
                 ['docker', 'exec', self.container_name, 'bash', '-c', launch_cmd],
