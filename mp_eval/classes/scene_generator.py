@@ -31,18 +31,18 @@ class SceneGenerator:
         elif scene_generation_type == "cluttered":
             from mp_eval.assets.procedural.cluttered import ClutteredGenerator
             self._add_asset_generator(ClutteredGenerator(scene_generation_params))
+        elif scene_generation_type == "user":
+            self.assets.append(scene_generation_params)
         else:
             raise ValueError(f"Scene generation type {scene_generation_type} not supported")
 
         for generator in self.generators:
             self.assets.append(generator.generate_procedurally())
 
-
     def _asset_to_yaml(self, asset: List[Dict]):
         yaml_dict = {}
         yaml_dict['obstacles'] = asset
         return yaml.dump(yaml_dict)
-
 
     def _save_assets_as_yaml(self):
         asset = self.assets[0]

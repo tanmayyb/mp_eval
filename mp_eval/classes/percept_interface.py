@@ -94,6 +94,7 @@ class PerceptInterface:
 
     def _setup_scene_nodes(self):
         scene_type = self.config.scene_config.scene_type
+        publish_once = self.config.scene_config.scene_params.publish_once
         if scene_type == "static":
             scene_path = self.config.scene_config.scene_params.static_scene_path
             self._add_node(
@@ -101,7 +102,8 @@ class PerceptInterface:
                 node_executable="scene_loader.py",
                 node_name="scene_loader",
                 parameters={
-                    'obstacles_config_path': str(self.pkg_dir / scene_path)
+                    'obstacles_config_path': str(self.pkg_dir / scene_path),
+                    'publish_once': publish_once
                 }
             )
         elif scene_type == "generated":
@@ -111,7 +113,8 @@ class PerceptInterface:
                 node_executable="scene_loader.py",
                 node_name="scene_loader",
                 parameters={
-                    'obstacles_config_path': str(self.pkg_dir / scene_path)
+                    'obstacles_config_path': str(self.pkg_dir / scene_path),
+                    'publish_once': publish_once
                 }
             )
         else:
@@ -138,7 +141,8 @@ class PerceptInterface:
                 ('/get_velocity_heuristic_circforce', f'/{self.config.namespace}/get_velocity_heuristic_force'),
                 ('/get_goalobstacle_heuristic_circforce', f'/{self.config.namespace}/get_goalobstacle_heuristic_force'),
                 ('/get_random_heuristic_circforce', f'/{self.config.namespace}/get_random_heuristic_force'),
-                ('/get_min_obstacle_distance', f'/{self.config.namespace}/get_min_obstacle_distance')
+                ('/get_apf_heuristic_circforce', f'/{self.config.namespace}/get_apf_heuristic_force'),
+                ('/get_min_obstacle_distance', f'/{self.config.namespace}/get_min_obstacle_distance'),
             ]
         )
     
@@ -155,11 +159,15 @@ class PerceptInterface:
     
     def _setup_scene(self):
         scene_type = self.config.scene_config.scene_type
-        if scene_type != "generated":
-            return
-        scene_generator = SceneGenerator(self.config.scene_config, self.logger.get_child('scene_generator'), self.pkg_dir)
-        scene_generator.generate_scene()
-    
+        if scene_type == "generated":
+            scene_generator = SceneGenerator(self.config.scene_config, self.logger.get_child('scene_generator'), self.pkg_dir)
+            scene_generator.generate_scene()
+        elif scene_type == "static":
+            pass
+        else:
+            raise ValueError(f"Scene type {scene_type} not supported")
+
+
     def _log_subprocess_output(self, output: str, prefix: str = ""):
         """Log subprocess output to both logger and file"""
         if output:
@@ -215,9 +223,9 @@ class PerceptInterface:
                 process.kill()
     
     def setup(self):
+        self._setup_rviz_node()
         self._setup_scene()
         self._setup_fields_computer_node()
-        self._setup_rviz_node()
         self._setup_scene_nodes()
 
     def execute(self):
