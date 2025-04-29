@@ -68,12 +68,14 @@ class SceneParams:
     static_scene_path: str
     scene_generation_type: str
     scene_generation_params: Dict[str, float]
+    publish_once: bool
     @classmethod
     def from_config(cls, config: Dict):
         return cls(
             static_scene_path=config['static_scene_path'] if 'static_scene_path' in config else None,
             scene_generation_type=config['scene_generation_type'] if 'scene_generation_type' in config else None,
-            scene_generation_params=config['scene_generation_params'] if 'scene_generation_params' in config else None
+            scene_generation_params=config['scene_generation_params'] if 'scene_generation_params' in config else None,
+            publish_once=config['publish_once'] if 'publish_once' in config else True
         )
 @dataclass
 class SceneConfig:
@@ -209,6 +211,7 @@ class PlannerYaml:
                 "goal_heuristic_force",
                 "goalobstacle_heuristic_force",
                 "random_heuristic_force",
+                "apf_heuristic_force",
                 "obstacle_distance_cost_client"
             ],
             "callback_servers": [],
@@ -249,6 +252,12 @@ class PlannerYaml:
                     "type": "random_heuristic_force",
                     "callback_request": "get_random_heuristic_force",
                     "callback_response": "random_heuristic_force_response",
+                    "timeout": self.config.service_timeout
+                },
+                "apf_heuristic_force": {
+                    "type": "apf_heuristic_force",
+                    "callback_request": "get_apf_heuristic_force",
+                    "callback_response": "apf_heuristic_force_response",
                     "timeout": self.config.service_timeout
                 },
                 "obstacle_distance_cost_client": {
