@@ -23,9 +23,7 @@ class SceneGenerator:
             or scene_generation_type == "hole_in_the_wall":
             from mp_eval.assets.procedural.wall_generator import WallGenerator
             self._add_asset_generator(WallGenerator(scene_generation_params))
-        elif scene_generation_type == "walls" \
-            or scene_generation_type == "narrow_passage"\
-            or scene_generation_type == "trap":
+        elif scene_generation_type in ["walls", "narrow_passage", "narrowpassage", "trap"]:
             from mp_eval.assets.procedural.walls_generator import WallsGenerator
             self._add_asset_generator(WallsGenerator(scene_generation_params))
         elif scene_generation_type == "cluttered":
@@ -38,6 +36,10 @@ class SceneGenerator:
 
         for generator in self.generators:
             self.assets.append(generator.generate_procedurally())
+    
+    def get_assets(self):
+        self._generate_assets()
+        return self.assets
 
     def _asset_to_yaml(self, asset: List[Dict]):
         yaml_dict = {}
