@@ -73,8 +73,9 @@ class MetricsCollectorNode(Node):
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
         # Create log file with timestamp
-        current_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        self.log_file = self.log_dir / f'{current_time}_{self.workload_name}.result'
+        delimiter = '~'
+        current_time = datetime.now().strftime('%y%m%d-%H-%M-%S')
+        self.log_file = self.log_dir / f'{current_time}{delimiter}{self.workload_name}.result'
         self.logger.info(f'Logging to {self.log_file}')
 
         # Initialize log file with header
@@ -107,12 +108,12 @@ class MetricsCollectorNode(Node):
                 self._target_pose_callback,
                 qos_profile_sensor_data
             ),
-            'primitives': self.create_subscription(
-                PointCloud2,
-                '/primitives',
-                self._process_primitives_msg,
-                qos_profile_sensor_data
-            )
+            # 'primitives': self.create_subscription(
+            #     PointCloud2,
+            #     '/primitives',
+            #     self._process_primitives_msg,
+            #     qos_profile_sensor_data
+            # )
         }
 
         self.subs['best_agent_name'] = self.create_subscription(
