@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'mp_eval = mp_eval.mp_eval:main',
             'metrics_collector = mp_eval.metrics_collector:main',
+            'scene_viewer = mp_eval.scene_viewer:main',
         ],
     },
 )
