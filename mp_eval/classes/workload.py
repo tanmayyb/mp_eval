@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 import yaml
 from typing import List, Dict, Tuple, Optional
 
@@ -61,8 +61,10 @@ class PlannerConfig:
     path_length_cost_weight: float
     goal_distance_cost_weight: float
     obstacle_distance_cost_weight: float
+    trajectory_smoothness_cost_weight: float
     poses: Poses # to be stored in start_goal.yaml
     agents: List[AgentConfig] # to be stored in scenario_config.yaml
+    publish_trajectory: bool = field(default=False)
 @dataclass
 class SceneParams:
     static_scene_path: str
@@ -171,7 +173,9 @@ class WorkloadConfig:
                 agents=agents,
                 path_length_cost_weight=planner_data['path_length_cost_weight'],
                 goal_distance_cost_weight=planner_data['goal_distance_cost_weight'],
-                obstacle_distance_cost_weight=planner_data['obstacle_distance_cost_weight']
+                obstacle_distance_cost_weight=planner_data['obstacle_distance_cost_weight'],
+                trajectory_smoothness_cost_weight=planner_data['trajectory_smoothness_cost_weight'],
+                publish_trajectory=planner_data.get('publish_trajectory', False)
             )
             
             percept_data = data['percept_config']
@@ -199,11 +203,12 @@ class PlannerYaml:
         # modify boilerplate with workload config
         scenario_config = {
             "loop_frequency": self.config.loop_frequency,
-            "publishers": [
-                # "trajectory", 
-                "target", "pose", 'best_agent_name']\
-                    +[f"agent_{i}_planning_time" for i in range(1, len(self.config.agents) + 1)] # planning time for each agent
-                    +[f"agent_{i}_cost" for i in range(1, len(self.config.agents) + 1)], # cost for each agent
+            "publishers": (
+                (["trajectory"] if self.config.publish_trajectory else []) 
+                + ["target", "pose", 'best_agent_name']
+                + [f"agent_{i}_planning_time" for i in range(1, len(self.config.agents) + 1)]
+                + [f"agent_{i}_cost" for i in range(1, len(self.config.agents) + 1)]
+            ),
             "subscribers": [],
             "callback_clients": [
                 "obstacle_heuristic_force",
@@ -216,7 +221,7 @@ class PlannerYaml:
             ],
             "callback_servers": [],
             "publisher": {
-                # "trajectory": {"type": "gafro_motor_vector", "topic": "trajectory", "callback_queue": "trajectory"},
+                "trajectory": {"type": "gafro_motor_vector", "topic": "trajectory", "callback_queue": "trajectory"},
                 "target": {"type": "gafro_motor", "topic": "target", "callback_queue": "target"},
                 "pose": {"type": "gafro_motor", "topic": "pose", "callback_queue": "pose"},
                 "best_agent_name": {"type": "ros_string", "topic": "best_agent_name", "callback_queue": "best_agent_name"},
@@ -279,7 +284,8 @@ class PlannerYaml:
                 "costs": [
                     "path_length_cost",
                     "goal_distance_cost",
-                    "obstacle_distance_cost"
+                    "obstacle_distance_cost",
+                    "trajectory_smoothness_cost"
                 ],
                 "path_length_cost": {
                     "weight": self.config.path_length_cost_weight
@@ -289,6 +295,9 @@ class PlannerYaml:
                 },
                 "obstacle_distance_cost": {
                     "weight": self.config.obstacle_distance_cost_weight
+                },
+                "trajectory_smoothness_cost": {
+                    "weight": self.config.trajectory_smoothness_cost_weight
                 }
             }
         }
