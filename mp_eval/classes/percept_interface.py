@@ -186,6 +186,7 @@ class PerceptInterface:
             # For rviz2, avoid redirecting stdout/stderr so the GUI can pop up
             if node_spec["name"] == "perception_rviz":
                 process = subprocess.Popen(cmd)
+                time.sleep(1.0)
             else:
                 process = subprocess.Popen(
                     cmd,
