@@ -142,6 +142,7 @@ class PerceptInterface:
                 ('/get_goalobstacle_heuristic_circforce', f'/{self.config.namespace}/get_goalobstacle_heuristic_force'),
                 ('/get_random_heuristic_circforce', f'/{self.config.namespace}/get_random_heuristic_force'),
                 ('/get_apf_heuristic_circforce', f'/{self.config.namespace}/get_apf_heuristic_force'),
+                ('/get_navigation_function_circforce', f'/{self.config.namespace}/get_navigation_function_force'),
                 ('/get_min_obstacle_distance', f'/{self.config.namespace}/get_min_obstacle_distance'),
             ]
         )
