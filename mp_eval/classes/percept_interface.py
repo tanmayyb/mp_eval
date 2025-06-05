@@ -133,7 +133,10 @@ class PerceptInterface:
                 'mass_radius': self.config.fields_config.mass_radius,
                 'show_processing_delay': self.config.fields_config.show_processing_delay,
                 'show_requests': self.config.fields_config.show_requests,
-                'potential_detect_shell_rad': self.config.fields_config.potential_detect_shell_rad
+                'potential_detect_shell_rad': self.config.fields_config.potential_detect_shell_rad,
+                'navigation_function_K': self.config.fields_config.navigation_function_K,
+                'navigation_function_world_radius': self.config.fields_config.navigation_function_world_radius,
+                # 'show_netforce_output': True,
             },
             remappings=[
                 ('/get_obstacle_heuristic_circforce', f'/{self.config.namespace}/get_obstacle_heuristic_force'),
