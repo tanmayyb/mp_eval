@@ -204,6 +204,14 @@ class PlannerYaml:
 		return cls(config)
 
 	def get_planner_setup_config(self):
+		# Define cost components as a static list
+		COST_COMPONENTS = [
+			"path_length_cost",
+			"goal_distance_cost",
+			"obstacle_distance_cost",
+			"trajectory_smoothness_cost"
+		]
+
 		# modify boilerplate with workload config
 		scenario_config = {
 			"loop_frequency": self.config.loop_frequency,
@@ -212,6 +220,7 @@ class PlannerYaml:
 				+ ["target", "pose", 'best_agent_name']
 				+ [f"agent_{i}_planning_time" for i in range(1, len(self.config.agents) + 1)]
 				+ [f"agent_{i}_cost" for i in range(1, len(self.config.agents) + 1)]
+				+ [f"agent_{i}_{cost_name}" for i in range(1, len(self.config.agents) + 1) for cost_name in COST_COMPONENTS]
 			),
 			"subscribers": [],
 			"callback_clients": [
@@ -231,7 +240,10 @@ class PlannerYaml:
 				"pose": {"type": "gafro_motor", "topic": "pose", "callback_queue": "pose"},
 				"best_agent_name": {"type": "ros_string", "topic": "best_agent_name", "callback_queue": "best_agent_name"},
 				**{f"agent_{i}_planning_time": {"type": "ros_float64", "topic": f"agent_{i}/planning_time", "callback_queue": f"cf_planner/agent_{i}/planning_time"} for i in range(1, len(self.config.agents) + 1)},
-				**{f"agent_{i}_cost": {"type": "ros_float64", "topic": f"agent_{i}/cost", "callback_queue": f"cf_planner/agent_{i}/cost"} for i in range(1, len(self.config.agents) + 1)}
+				**{f"agent_{i}_cost": {"type": "ros_float64", "topic": f"agent_{i}/cost", "callback_queue": f"cf_planner/agent_{i}/cost"} for i in range(1, len(self.config.agents) + 1)},
+				**{f"agent_{i}_{cost_name}": {"type": "ros_float64", "topic": f"agent_{i}/{cost_name}", "callback_queue": f"cf_planner/agent_{i}/{cost_name}"} 
+				   for i in range(1, len(self.config.agents) + 1) 
+				   for cost_name in COST_COMPONENTS}
 			},
 			"callback_client": {
 				"obstacle_heuristic_force": {
