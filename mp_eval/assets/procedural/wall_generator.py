@@ -42,7 +42,7 @@ class WallGenerator:
         self.hole_height = self.scene_config_params.get('hole_height', 0.0)
 
 
-    def _generate_wall(self):
+    def _generate_wall(self, generate_raw=False):
         # Compute the wall's lower left corner in world coordinates
         wall_start_i = self.wall_center_i - self.wall_width / 2.0
         wall_start_j = self.wall_center_j - self.wall_height / 2.0
@@ -86,14 +86,17 @@ class WallGenerator:
                     pos = [self.wall_offset_k, cell_pos_j, cell_pos_i]
                 else:
                     pos = [cell_pos_i, self.wall_offset_k, cell_pos_j]
-
-                wall_data.append({
-                    'position': [round(p, 2) for p in pos]
-                })
+                
+                if not generate_raw:
+                    wall_data.append({
+                      'position': [round(p, 2) for p in pos]
+                    })
+                else:
+                    wall_data.append(pos)
 
         return wall_data
 
 
-    def generate_procedurally(self) -> List[Dict]:
+    def generate_procedurally(self, generate_raw=False) -> List[Dict]:
         self._load_config()
-        return self._generate_wall()
+        return self._generate_wall(generate_raw)

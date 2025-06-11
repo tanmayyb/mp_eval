@@ -23,7 +23,7 @@ class SceneGenerator:
             or scene_generation_type == "hole_in_the_wall":
             from mp_eval.assets.procedural.wall_generator import WallGenerator
             self._add_asset_generator(WallGenerator(scene_generation_params))
-        elif scene_generation_type in ["walls", "narrow_passage", "narrowpassage", "trap"]:
+        elif scene_generation_type in ["walls", "narrow_passage", "narrowpassage", "passage", "trap"]:
             from mp_eval.assets.procedural.walls_generator import WallsGenerator
             self._add_asset_generator(WallsGenerator(scene_generation_params))
         elif scene_generation_type == "cluttered":

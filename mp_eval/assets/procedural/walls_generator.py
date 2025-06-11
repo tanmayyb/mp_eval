@@ -22,7 +22,7 @@ def create_dense_wall(wall_name:str, wall_config:dict) -> Dict:
         config['wall_offset_k'] = start + float(i) * spacing
         generators[f'{wall_name}_wall{i}'] = WallGenerator(config)
     return generators
-
+   
 class WallsGenerator:
     def __init__(self, scene_config_params:dict):
         self.scene_config_params = scene_config_params
@@ -37,13 +37,13 @@ class WallsGenerator:
             else:
                 raise ValueError(f"Wall name {wall_name} not supported")
 
-    def _generate_narrow_passage(self)->List[Dict]:
+    def _generate_all(self, generate_raw)->List[Dict]:
         generated_assets = []
         for generator in self.generators.values():
-            generated_assets.extend(generator.generate_procedurally())
+            generated_assets.extend(generator.generate_procedurally(generate_raw=generate_raw))
         
         return generated_assets
     
-    def generate_procedurally(self) -> List[Dict]:
+    def generate_procedurally(self, generate_raw=False) -> List[Dict]:
         self._load_config()
-        return self._generate_narrow_passage()
+        return self._generate_all(generate_raw)
