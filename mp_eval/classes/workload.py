@@ -94,11 +94,11 @@ class FieldsConfig:
 	agent_radius: float
 	mass_radius: float
 	potential_detect_shell_rad: float
-	navigation_function_K: float
-	navigation_function_world_radius: float
 	show_processing_delay: bool
 	show_requests: bool
 	use_cpu: bool
+	navigation_function_K: float = 1.0
+	navigation_function_world_radius: float = 10.0
 	@classmethod
 	def from_config(cls, config: Dict):
 		return cls(
