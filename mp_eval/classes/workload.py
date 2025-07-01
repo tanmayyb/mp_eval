@@ -235,7 +235,7 @@ class PlannerYaml:
 			],
 			"callback_servers": [],
 			"publisher": {
-				"trajectory": {"type": "gafro_motor_vector", "topic": "trajectory", "callback_queue": "trajectory"},
+				"trajectory": {"type": "gafro_motor_vector", "topic": "trajectory", "callback_queue": "trajectory", "queue_size": 100},
 				"target": {"type": "gafro_motor", "topic": "target", "callback_queue": "target"},
 				"pose": {"type": "gafro_motor", "topic": "pose", "callback_queue": "pose"},
 				"best_agent_name": {"type": "ros_string", "topic": "best_agent_name", "callback_queue": "best_agent_name"},
