@@ -139,6 +139,39 @@ class MetricsCollectorNode(Node):
                 qos_profile_sensor_data
             )  
 
+        # Add subscriptions for detailed cost components
+        for i in range(1, len(self.workload_config.planner_config.agents) + 1):
+            self.subs[f'agent_{i}_trajectory_smoothness_cost'] = self.create_subscription(
+                Float64,
+                f'/{namespace}/agent_{i}/trajectory_smoothness_cost',
+                partial(self._process_agent_trajectory_smoothness_cost_msg, agent_id=i),
+                qos_profile_sensor_data
+            )
+
+        for i in range(1, len(self.workload_config.planner_config.agents) + 1):
+            self.subs[f'agent_{i}_path_length_cost'] = self.create_subscription(
+                Float64,
+                f'/{namespace}/agent_{i}/path_length_cost',
+                partial(self._process_agent_path_length_cost_msg, agent_id=i),
+                qos_profile_sensor_data
+            )
+
+        for i in range(1, len(self.workload_config.planner_config.agents) + 1):
+            self.subs[f'agent_{i}_goal_distance_cost'] = self.create_subscription(
+                Float64,
+                f'/{namespace}/agent_{i}/goal_distance_cost',
+                partial(self._process_agent_goal_distance_cost_msg, agent_id=i),
+                qos_profile_sensor_data
+            )
+
+        for i in range(1, len(self.workload_config.planner_config.agents) + 1):
+            self.subs[f'agent_{i}_obstacle_distance_cost'] = self.create_subscription(
+                Float64,
+                f'/{namespace}/agent_{i}/obstacle_distance_cost',
+                partial(self._process_agent_obstacle_distance_cost_msg, agent_id=i),
+                qos_profile_sensor_data
+            )
+
     def _log_worker(self):
         """Process log messages from queue until signaled to stop."""
         while not self.stop_logging:
@@ -230,6 +263,46 @@ class MetricsCollectorNode(Node):
             'type': 'agent_cost',
             'timestamp': self.get_clock().now().nanoseconds * 1e-9,
             'cost': msg.data,
+            'agent_id': agent_id
+        } 
+        self.log_queue.put(record)
+
+    def _process_agent_trajectory_smoothness_cost_msg(self, msg: Float64, agent_id: int):
+        """Process agent trajectory smoothness cost message."""
+        record = {
+            'type': 'agent_trajectory_smoothness_cost',
+            'timestamp': self.get_clock().now().nanoseconds * 1e-9,
+            'trajectory_smoothness_cost': msg.data,
+            'agent_id': agent_id
+        } 
+        self.log_queue.put(record)
+
+    def _process_agent_path_length_cost_msg(self, msg: Float64, agent_id: int):
+        """Process agent path length cost message."""
+        record = {
+            'type': 'agent_path_length_cost',
+            'timestamp': self.get_clock().now().nanoseconds * 1e-9,
+            'path_length_cost': msg.data,
+            'agent_id': agent_id
+        } 
+        self.log_queue.put(record)
+
+    def _process_agent_goal_distance_cost_msg(self, msg: Float64, agent_id: int):
+        """Process agent goal distance cost message."""
+        record = {
+            'type': 'agent_goal_distance_cost',
+            'timestamp': self.get_clock().now().nanoseconds * 1e-9,
+            'goal_distance_cost': msg.data,
+            'agent_id': agent_id
+        } 
+        self.log_queue.put(record)
+
+    def _process_agent_obstacle_distance_cost_msg(self, msg: Float64, agent_id: int):
+        """Process agent obstacle distance cost message."""
+        record = {
+            'type': 'agent_obstacle_distance_cost',
+            'timestamp': self.get_clock().now().nanoseconds * 1e-9,
+            'obstacle_distance_cost': msg.data,
             'agent_id': agent_id
         } 
         self.log_queue.put(record)
